@@ -167,14 +167,14 @@
   font-size: 0.8rem;
 }
 
-/* App Header Styles */
+/* App Header Styles - Compact for Mobile */
 .app-header {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
-  padding: 15px 20px;
+  padding: 8px 15px;
   z-index: 100;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
@@ -183,13 +183,14 @@
   background: rgba(255, 255, 255, 0.1);
   border: 2px solid rgba(255, 255, 255, 0.3);
   color: white;
-  padding: 10px 20px;
-  border-radius: 25px;
+  padding: 6px 15px;
+  border-radius: 20px;
   font-family: 'Orbitron', monospace;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
   backdrop-filter: blur(10px);
+  font-size: 14px;
 }
 
 .back-to-home-button:hover {
@@ -198,9 +199,9 @@
   transform: translateY(-1px);
 }
 
-/* Adjust main app for header */
+/* Adjust main app for compact header */
 .main-app {
-  padding-top: 70px;
+  padding-top: 50px;
 }
 
 /* Mobile Responsiveness */
@@ -434,62 +435,13 @@
   font-weight: 400;
 }
 
-.fights-list, .live-fights-list {
+.fights-list {
   display: flex;
   flex-direction: column;
   gap: 15px;
   max-height: calc(100vh - 200px);
   overflow-y: auto;
   padding: 0 5px;
-}
-
-/* Live Events Page Styles */
-.live-events-screen {
-  position: fixed !important;
-  top: 0 !important;
-  left: 0 !important;
-  width: 100% !important;
-  height: 100% !important;
-  background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #312e81 100%) !important;
-  display: none !important;
-  flex-direction: column !important;
-  align-items: center !important;
-  justify-content: flex-start !important;
-  z-index: 1000 !important;
-  margin: 0 !important;
-  overflow-y: auto !important;
-}
-
-.live-events-screen[style*="display: flex"] {
-  display: flex !important;
-}
-
-.live-events-container {
-  max-width: 400px;
-  width: 100%;
-  text-align: center;
-  padding-top: 20px;
-}
-
-.live-events-header {
-  margin-bottom: 30px;
-  position: relative;
-}
-
-.live-events-title {
-  font-family: 'Orbitron', monospace;
-  font-size: 2rem;
-  font-weight: 700;
-  color: white;
-  margin: 20px 0 10px 0;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-}
-
-.live-events-subtitle {
-  font-size: 1rem;
-  color: #e0e7ff;
-  margin: 0 0 20px 0;
-  font-weight: 400;
 }
 
 /* Base fight card styles moved to expandable section below */
@@ -663,49 +615,13 @@
 }
 
 .fight-card.expanded .fight-extra-details {
-  display: flex;
-  flex-direction: column;
+  display: block;
 }
 
 /* All expanded content styling removed - let it be regular content */
 
 .fighter-records {
   display: none; /* Hidden for now - will re-enable when records scraping is fixed */
-}
-
-/* Score This Fight Button */
-.score-fight-button {
-  display: none; /* Hidden by default */
-  margin-top: 15px;
-  padding: 12px 24px;
-  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-family: 'Orbitron', monospace;
-  font-size: 0.95rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(30, 64, 175, 0.3);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  align-self: flex-end; /* Aligns to bottom right */
-}
-
-.score-fight-button:hover {
-  background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(30, 64, 175, 0.4);
-}
-
-.score-fight-button:active {
-  transform: translateY(0);
-}
-
-/* Show button when card is expanded */
-.fight-card.expanded .score-fight-button {
-  display: block;
 }
 
 .fighter-record-item {
@@ -834,18 +750,18 @@ body {
 .boxer-info-container {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 15px;
-  gap: 10px;
+  margin-bottom: 8px;
+  gap: 8px;
 }
 
 .boxer-info {
-  padding: 12px;
-  border-radius: 15px;
+  padding: 8px;
+  border-radius: 12px;
   display: flex;
   flex-direction: column;
   align-items: center;
   width: 49%;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
   border: 2px solid rgba(255, 255, 255, 0.3);
   backdrop-filter: blur(10px);
 }
@@ -860,12 +776,12 @@ body {
 
 .boxer-name {
   width: 100%;
-  padding: 10px;
-  margin-bottom: 10px;
+  padding: 6px;
+  margin-bottom: 6px;
   border: 2px solid var(--borderColor);
-  border-radius: 10px;
+  border-radius: 8px;
   text-align: center;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 600;
   background: rgba(128, 128, 128, 0.2);
   backdrop-filter: blur(10px);
@@ -915,8 +831,8 @@ button {
 }
 
 .running-total {
-  margin-top: 5px;
-  font-size: 18px;
+  margin-top: 3px;
+  font-size: 16px;
   font-weight: 700;
   display: flex;
   justify-content: space-between;
@@ -927,7 +843,7 @@ button {
 
 .rounds-container {
   flex-grow: 1;
-  padding: 10px;
+  padding: 8px;
   border: 1px solid var(--borderColor);
   border-radius: 10px;
   overflow: hidden;
@@ -975,14 +891,14 @@ button {
 }
 
 .score-cell, .round-number {
-  height: 30px;
+  height: 26px;
   display: flex;
   justify-content: center;
   align-items: center;
   border: 1px solid var(--borderColor);
-  margin-bottom: 3px;
-  border-radius: 12px;
-  font-size: 16px;
+  margin-bottom: 2px;
+  border-radius: 10px;
+  font-size: 14px;
   background: var(--roundBackgroundColor);
   backdrop-filter: blur(5px);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
