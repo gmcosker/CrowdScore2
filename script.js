@@ -1,6 +1,6 @@
-// VERSION 64 - FORCE GITHUB UPDATE - Live Events Fix
-// This version adds debugging and visual test for Live Events button
-// Created: October 12, 2025 - UPDATED TO FORCE DEPLOYMENT
+// VERSION 65 - LIVE EVENTS DEBUGGING - Fire Emojis Added
+// This version adds extensive debugging for Live Events button
+// Created: October 12, 2025 - FIRE EMOJI DEBUGGING
 
 // Script loaded successfully
 
@@ -230,8 +230,10 @@ function handleUpcomingFights() {
 }
 
 function handleLiveEvents() {
-  console.log('Live Events clicked!');
+  console.log('🔥🔥🔥 Live Events clicked! 🔥🔥🔥');
+  console.log('About to show live events screen...');
   showLiveEventsScreen();
+  console.log('Live events screen function called!');
 }
 
 function showUpcomingFightsScreen() {
@@ -248,12 +250,13 @@ function showUpcomingFightsScreen() {
 }
 
 function showLiveEventsScreen() {
-  console.log('Showing live events screen...');
+  console.log('🚀🚀🚀 Showing live events screen... 🚀🚀🚀');
   document.getElementById('login-overlay').style.display = 'none';
   document.getElementById('main-app').style.display = 'none';
   document.getElementById('home-screen').style.display = 'none';
   document.getElementById('upcoming-fights-screen').style.display = 'none';
   document.getElementById('live-events-screen').style.display = 'flex';
+  console.log('✅ Live events screen should now be visible!');
   
   // Load and display live event data
   loadLiveEvents();
