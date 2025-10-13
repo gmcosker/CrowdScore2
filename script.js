@@ -166,6 +166,7 @@ function setupHomeScreenListeners() {
   console.log('Score button found:', !!scoreButton);
   console.log('Upcoming fights button found:', !!upcomingFightsButton);
   console.log('Live events button found:', !!liveEventsButton);
+  console.log('Live events button element:', liveEventsButton);
   
   if (scoreButton) {
     // Remove any existing listeners to avoid duplicates
@@ -193,6 +194,13 @@ function setupHomeScreenListeners() {
   if (liveEventsButton) {
     liveEventsButton.addEventListener('click', handleLiveEvents);
     console.log('Live events button listener attached');
+    
+    // Add debugging click handler
+    liveEventsButton.onclick = function(e) {
+      console.log('Live Events clicked via onclick!');
+      e.preventDefault();
+      handleLiveEvents();
+    };
   } else {
     console.error('Live events button not found!');
   }
