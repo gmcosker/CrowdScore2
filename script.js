@@ -245,7 +245,7 @@ function showLiveEventsScreen() {
   console.log('Live events screen setup complete');
 }
 
-// ESPN Web Scraper Functions with Caching
+// ESPN Web Scraper Functions with Caching - Updated v58
 const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours in milliseconds (daily refresh)
 const CACHE_KEY = 'crowdscore_espn_data';
 
