@@ -1,4 +1,6 @@
-// Add this at the start of your script.js file
+// VERSION 64 - FORCE GITHUB UPDATE - Live Events Fix
+// This version adds debugging and visual test for Live Events button
+// Created: October 12, 2025 - UPDATED TO FORCE DEPLOYMENT
 
 // Script loaded successfully
 
@@ -201,6 +203,11 @@ function setupHomeScreenListeners() {
       e.preventDefault();
       handleLiveEvents();
     };
+    
+    // Test if button is clickable at all
+    liveEventsButton.style.cursor = 'pointer';
+    liveEventsButton.style.border = '2px solid red'; // Temporary visual test
+    console.log('Live Events button styled for testing');
   } else {
     console.error('Live events button not found!');
   }
