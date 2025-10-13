@@ -267,11 +267,12 @@ async function fetchESPNBoxingSchedule() {
     // Focus on web scraping ESPN boxing schedule page
     const espnUrl = 'https://www.espn.com/boxing/story/_/id/12508267/boxing-schedule';
     
-    // Try multiple CORS proxies for better reliability
+    // Try multiple CORS proxies for better reliability (mobile-friendly)
     const proxies = [
       'https://api.allorigins.win/raw?url=',
-      'https://cors-anywhere.herokuapp.com/',
-      'https://thingproxy.freeboard.io/fetch/'
+      'https://corsproxy.io/?',
+      'https://thingproxy.freeboard.io/fetch/',
+      'https://cors-anywhere.herokuapp.com/'
     ];
     
     console.log('Scraping ESPN boxing schedule page...');
@@ -281,9 +282,17 @@ async function fetchESPNBoxingSchedule() {
         const proxyUrl = proxies[i];
         console.log(`Trying proxy ${i + 1}/${proxies.length}: ${proxyUrl}`);
         
+        // Use mobile-friendly user agent for mobile devices
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        const userAgent = isMobile 
+          ? 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15'
+          : 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36';
+        
+        console.log(`🔧 Mobile detected: ${isMobile}, using User-Agent: ${userAgent}`);
+        
         const response = await fetch(proxyUrl + encodeURIComponent(espnUrl), {
           headers: {
-            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36'
+            'User-Agent': userAgent
           }
         });
         
