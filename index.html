@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8">
+  <title>ScoreCard prototype VibeCoded</title>
+  <link rel="stylesheet" href="./style.css?v=36">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+  
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="./manifest.json">
+  
+  <!-- iOS Meta Tags -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="CrowdScore">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#1e40af">
+  
+  <!-- iOS Icons -->
+  <link rel="apple-touch-icon" sizes="180x180" href="./icons/icon-180x180.png">
+  <link rel="apple-touch-icon" sizes="152x152" href="./icons/icon-152x152.png">
+  <link rel="apple-touch-icon" sizes="144x144" href="./icons/icon-144x144.png">
+  <link rel="apple-touch-icon" sizes="120x120" href="./icons/icon-120x120.png">
+  <link rel="apple-touch-icon" sizes="114x114" href="./icons/icon-114x114.png">
+  <link rel="apple-touch-icon" sizes="76x76" href="./icons/icon-76x76.png">
+  <link rel="apple-touch-icon" sizes="72x72" href="./icons/icon-72x72.png">
+  <link rel="apple-touch-icon" sizes="60x60" href="./icons/icon-60x60.png">
+  <link rel="apple-touch-icon" sizes="57x57" href="./icons/icon-57x57.png">
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" sizes="32x32" href="./icons/icon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="./icons/icon-16x16.png">
+</head>
+<body>
+<!-- Login/Signup Screen -->
+<div class="login-overlay" id="login-overlay">
+  <div class="login-container">
+    <div class="login-header">
+      <h1 class="app-title"> CrowdScore</h1>
+      <p class="app-subtitle">Let the crowd decide</p>
+    </div>
+    
+    <!-- Login Form -->
+    <div class="auth-form" id="login-form">
+      <h2>Welcome Back</h2>
+      <div class="form-group">
+        <input type="email" id="login-email" placeholder="Email" required>
+      </div>
+      <div class="form-group">
+        <input type="password" id="login-password" placeholder="Password" required>
+      </div>
+      <button class="auth-button primary" id="login-button">Sign In</button>
+      <p class="auth-switch">Don't have an account? <a href="#" id="show-signup">Sign Up</a></p>
+    </div>
+    
+    <!-- Signup Form -->
+    <div class="auth-form" id="signup-form" style="display: none;">
+      <h2>Create Account</h2>
+      <div class="form-group">
+        <input type="text" id="signup-name" placeholder="Full Name" required>
+      </div>
+      <div class="form-group">
+        <input type="email" id="signup-email" placeholder="Email" required>
+      </div>
+      <div class="form-group">
+        <input type="password" id="signup-password" placeholder="Password" required>
+      </div>
+      <div class="form-group">
+        <input type="password" id="signup-confirm" placeholder="Confirm Password" required>
+      </div>
+      <button class="auth-button primary" id="signup-button">Create Account</button>
+      <p class="auth-switch">Already have an account? <a href="#" id="show-login">Sign In</a></p>
+    </div>
+  </div>
+</div>
+
+<!-- Home Screen (initially hidden) -->
+<div class="home-screen" id="home-screen" style="display: none;">
+  <div class="home-container">
+    <div class="home-header">
+      <h1 class="home-title">CrowdScore</h1>
+      <p class="home-subtitle">Let the crowd decide</p>
+    </div>
+    
+    <div class="tiles-container">
+      <div class="tile main-tile" id="score-my-own-fight">
+        <div class="tile-icon">🥊</div>
+        <div class="tile-title">Score My Own Fight</div>
+        <div class="tile-description">Score any fight, anytime</div>
+      </div>
+      
+      <!-- Upcoming fights and live events tiles -->
+      <div class="tiles-row">
+        <div class="tile upcoming-tile" id="upcoming-fights">
+          <div class="tile-icon">📅</div>
+          <div class="tile-title">Upcoming Fights</div>
+          <div class="tile-description">Score live events</div>
+        </div>
+        <div class="tile upcoming-tile" id="live-events">
+          <div class="tile-icon">🔴</div>
+          <div class="tile-title">Live Events</div>
+          <div class="tile-description">Happening today</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Upcoming Fights Page (initially hidden) -->
+<div class="upcoming-fights-screen" id="upcoming-fights-screen" style="display: none;">
+  <div class="upcoming-fights-container">
+    <div class="upcoming-fights-header">
+      <button class="back-to-home-button" id="back-to-home-from-fights">← Back to Home</button>
+      <h1 class="upcoming-fights-title">Upcoming Fights</h1>
+      <p class="upcoming-fights-subtitle">Score these live events</p>
+    </div>
+    
+    <div class="fights-list" id="fights-list">
+      <!-- Fight cards will be dynamically inserted here -->
+    </div>
+  </div>
+</div>
+
+<!-- Live Events Page (initially hidden) -->
+<div class="live-events-screen" id="live-events-screen" style="display: none;">
+  <div class="live-events-container">
+    <div class="live-events-header">
+      <button class="back-to-home-button" id="back-to-home-from-live">← Back to Home</button>
+      <h1 class="live-events-title">Live Events</h1>
+      <p class="live-events-subtitle">Happening Today</p>
+    </div>
+    
+    <div class="live-fights-list" id="live-fights-list">
+      <!-- Live fight cards will be dynamically inserted here -->
+    </div>
+  </div>
+</div>
+
+<!-- Main App (initially hidden) -->
+<div class="main-app" id="main-app" style="display: none;">
+  <div class="app-header">
+    <button class="back-to-home-button" id="back-to-home">← Back to Home</button>
+  </div>
+  <div class="phone-frame">
+    <div class="scorecard">
+      <div class="boxer-info-container">
+        <div class="boxer-info blue">
+          <input type="text" id="blue-name" class="boxer-name" placeholder="Blue Corner">
+          <button class="blue-won">Blue Won</button>
+          <div class="running-total">Score: <span class="running-total-value">0</span></div>
+        </div>
+        <div class="boxer-info red">
+          <input type="text" id="red-name" class="boxer-name" placeholder="Red Corner">
+          <button class="red-won">Red Won</button>
+          <div class="running-total">Score: <span class="running-total-value">0</span></div>
+        </div>
+      </div>
+      <div class="rounds-container">
+        <div class="score-grid">
+          <div class="blue-column">
+            <div class="column-label">Blue</div>
+            <div class="blue-scores"></div>
+          </div>
+          <div class="round-column">
+            <div class="column-label">Round</div>
+            <div class="round-numbers"></div>
+          </div>
+          <div class="red-column">
+            <div class="column-label">Red</div>
+            <div class="red-scores"></div>
+          </div>
+        </div>
+      </div>
+      <div class="round-indicator">
+        <span class="round-text">Round 1 of 12</span>
+      </div>
+    </div>
+    <div class="final-center-overlay" style="display: none;">
+      <div class="final-scorecard">
+        <div class="scorecard-header">
+          <div class="header-row">
+            <div class="header-cell">RD</div>
+            <div class="header-cell title">CrowdScore</div>
+            <div class="header-cell">PTS</div>
+          </div>
+        </div>
+        <div class="scorecard-body">
+          <!-- Rounds will be dynamically inserted here -->
+        </div>
+        <div class="scorecard-footer">
+          <div class="total-row">
+            <div class="total-label">Total</div>
+            <div class="total-scores">
+              <span class="blue-total">108</span>
+              <span class="red-total">120</span>
+            </div>
+          </div>
+        </div>
+        <div class="final-summary">
+          <div class="summary-score">
+            <span class="corner-label blue-corner-label">Blue</span>
+            <span class="score-value blue-final">108</span>
+          </div>
+          <div class="summary-score">
+            <span class="corner-label red-corner-label">Red</span>
+            <span class="score-value red-final">120</span>
+          </div>
+        </div>
+      </div>
+      <button class="new-fight-button" id="new-fight">Score a New Fight</button>
+    </div>
+  </div>
+
+  <div class="theme-controls">
+    <button class="theme-button" id="toggle-theme">Toggle Theme</button>
+    <button class="theme-button" id="reset-theme">Reset Theme</button>
+  </div>
+</div>
+
+<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <script src="./script.js?v=57"></script>
+</body>
+</html>
+</html>

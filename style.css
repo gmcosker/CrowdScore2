@@ -1,0 +1,1363 @@
+/* Theme variables */
+:root {
+  /* Default theme */
+  --primaryColor: #f8fafc;
+  --phoneBackground: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+  --boxShadowColor: rgba(0, 0, 0, 0.15);
+  --blueBoxColor: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+  --redBoxColor: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  --blueButtonColor: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+  --redButtonColor: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  --borderColor: rgba(255, 255, 255, 0.2);
+  --roundBackgroundColor: rgba(255, 255, 255, 0.1);
+  --overlayBackground: rgba(0, 0, 0, 0.8);
+  --textColor: #1a202c;
+  --scorecardBackground: rgba(255, 255, 255, 0.95);
+  --inputBackground: rgba(255, 255, 255, 0.9);
+  --buttonShadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  --buttonHoverShadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+/* Home Screen Styles */
+.home-screen {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100vh !important;
+  background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 20px !important;
+  z-index: 1000 !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+}
+
+.home-container {
+  max-width: 400px;
+  width: 100%;
+  text-align: center;
+}
+
+.home-header {
+  margin-bottom: 40px;
+}
+
+.home-title {
+  font-family: 'Orbitron', monospace;
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: white;
+  margin: 0 0 10px 0;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.home-subtitle {
+  font-size: 1.1rem;
+  color: #e0e7ff;
+  margin: 0;
+  font-weight: 400;
+}
+
+.tiles-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.tile {
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 15px;
+  padding: 25px 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  text-align: center;
+}
+
+.tile:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+}
+
+.main-tile {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.3) 0%, rgba(37, 99, 235, 0.3) 100%);
+  border-color: rgba(59, 130, 246, 0.5);
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.main-tile:hover {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.4) 0%, rgba(37, 99, 235, 0.4) 100%);
+  border-color: rgba(59, 130, 246, 0.7);
+}
+
+.tile-icon {
+  font-size: 2.5rem;
+  margin-bottom: 10px;
+}
+
+.tile-title {
+  font-family: 'Orbitron', monospace;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 5px;
+}
+
+.tile-description {
+  font-size: 0.9rem;
+  color: #e0e7ff;
+  margin: 0;
+}
+
+.tiles-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+
+.upcoming-tile {
+  min-height: 80px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  opacity: 1;
+}
+
+.upcoming-tile:not(.placeholder) {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.3) 0%, rgba(37, 99, 235, 0.3) 100%);
+  border-color: rgba(59, 130, 246, 0.5);
+}
+
+.upcoming-tile:not(.placeholder):hover {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.4) 0%, rgba(37, 99, 235, 0.4) 100%);
+  border-color: rgba(59, 130, 246, 0.7);
+}
+
+.upcoming-tile.placeholder {
+  cursor: default;
+}
+
+.upcoming-tile.placeholder:hover {
+  transform: none;
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.upcoming-tile .tile-icon {
+  font-size: 1.8rem;
+  margin-bottom: 8px;
+}
+
+.upcoming-tile .tile-title {
+  font-size: 1rem;
+  margin-bottom: 3px;
+}
+
+.upcoming-tile .tile-description {
+  font-size: 0.8rem;
+}
+
+/* App Header Styles */
+.app-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+  padding: 15px 20px;
+  z-index: 100;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.back-to-home-button {
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  padding: 10px 20px;
+  border-radius: 25px;
+  font-family: 'Orbitron', monospace;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.back-to-home-button:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-1px);
+}
+
+/* Adjust main app for header */
+.main-app {
+  padding-top: 70px;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 480px) {
+  .home-title {
+    font-size: 2rem;
+  }
+  
+  .home-subtitle {
+    font-size: 1rem;
+  }
+  
+  .tile {
+    padding: 20px 15px;
+  }
+  
+  .main-tile {
+    min-height: 100px;
+  }
+  
+  .tile-icon {
+    font-size: 2rem;
+  }
+  
+  .tile-title {
+    font-size: 1.1rem;
+  }
+  
+  .tiles-row {
+    gap: 10px;
+  }
+  
+  .upcoming-tile {
+    min-height: 70px;
+  }
+}
+
+/* Login Screen Styles */
+.login-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 9999;
+}
+
+.login-container {
+  width: 100%;
+  max-width: 360px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  padding: 30px 20px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.login-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.app-title {
+  font-size: 36px;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 8px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.app-subtitle {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 16px;
+}
+
+.auth-form {
+  margin-top: 20px;
+}
+
+.auth-form h2 {
+  color: white;
+  font-size: 24px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  color: white;
+  font-size: 16px;
+  transition: all 0.3s ease;
+}
+
+.form-group input::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+}
+
+.auth-button {
+  width: 100%;
+  padding: 14px;
+  background: white;
+  color: #1e3a8a;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  margin-top: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.auth-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
+
+.auth-button:active {
+  transform: translateY(1px);
+}
+
+.auth-switch {
+  text-align: center;
+  margin-top: 20px;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 14px;
+}
+
+.auth-switch a {
+  color: white;
+  text-decoration: none;
+  font-weight: 600;
+  margin-left: 5px;
+}
+
+.auth-switch a:hover {
+  text-decoration: underline;
+}
+
+/* Error message styling */
+.error-message {
+  background: rgba(239, 68, 68, 0.2);
+  color: white;
+  padding: 12px;
+  border-radius: 8px;
+  margin-top: 15px;
+  font-size: 14px;
+  border-left: 3px solid #ef4444;
+  backdrop-filter: blur(5px);
+}
+
+/* Success message styling */
+.success-message {
+  background: rgba(34, 197, 94, 0.2);
+  color: white;
+  padding: 12px;
+  border-radius: 8px;
+  margin-top: 15px;
+  font-size: 14px;
+  border-left: 3px solid #22c55e;
+  backdrop-filter: blur(5px);
+}
+
+/* Upcoming Fights Screen Styles */
+.upcoming-fights-screen {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100vh !important;
+  background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%) !important;
+  display: none;
+  align-items: flex-start !important;
+  justify-content: center !important;
+  padding: 20px !important;
+  z-index: 1000 !important;
+  margin: 0 !important;
+  overflow-y: auto !important;
+}
+
+.upcoming-fights-screen[style*="display: flex"] {
+  display: flex !important;
+}
+
+.upcoming-fights-container {
+  max-width: 400px;
+  width: 100%;
+  text-align: center;
+  padding-top: 20px;
+}
+
+.upcoming-fights-header {
+  margin-bottom: 30px;
+  position: relative;
+}
+
+.upcoming-fights-title {
+  font-family: 'Orbitron', monospace;
+  font-size: 2rem;
+  font-weight: 700;
+  color: white;
+  margin: 20px 0 10px 0;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.upcoming-fights-subtitle {
+  font-size: 1rem;
+  color: #e0e7ff;
+  margin: 0 0 20px 0;
+  font-weight: 400;
+}
+
+.fights-list, .live-fights-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  max-height: calc(100vh - 200px);
+  overflow-y: auto;
+  padding: 0 5px;
+}
+
+/* Live Events Page Styles */
+.live-events-screen {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #312e81 100%) !important;
+  display: none !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  z-index: 1000 !important;
+  margin: 0 !important;
+  overflow-y: auto !important;
+}
+
+.live-events-screen[style*="display: flex"] {
+  display: flex !important;
+}
+
+.live-events-container {
+  max-width: 400px;
+  width: 100%;
+  text-align: center;
+  padding-top: 20px;
+}
+
+.live-events-header {
+  margin-bottom: 30px;
+  position: relative;
+}
+
+.live-events-title {
+  font-family: 'Orbitron', monospace;
+  font-size: 2rem;
+  font-weight: 700;
+  color: white;
+  margin: 20px 0 10px 0;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.live-events-subtitle {
+  font-size: 1rem;
+  color: #e0e7ff;
+  margin: 0 0 20px 0;
+  font-weight: 400;
+}
+
+/* Base fight card styles moved to expandable section below */
+
+.fight-card:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+}
+
+.fight-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #1e40af, #dc2626);
+}
+
+.fight-main-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.fighters {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.fighter-names {
+  font-family: 'Orbitron', monospace;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 5px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.fight-vs {
+  color: #e0e7ff;
+  font-size: 0.9rem;
+  margin: 2px 0;
+}
+
+.fight-date {
+  text-align: right;
+  color: #e0e7ff;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.fight-details {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.fight-venue {
+  color: #e0e7ff;
+  font-size: 0.8rem;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fight-weight {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.fight-network {
+  background: rgba(59, 130, 246, 0.3);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-left: 8px;
+}
+
+.fight-status {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(34, 197, 94, 0.3);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.fight-status.live {
+  background: rgba(239, 68, 68, 0.3);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.7; }
+  100% { opacity: 1; }
+}
+
+/* Enhanced fight card styling */
+.fighter-name {
+  font-weight: bold;
+  font-size: 16px;
+  margin-bottom: 2px;
+}
+
+.fighter-record {
+  font-size: 12px;
+  color: #666;
+  font-weight: normal;
+}
+
+/* Removed conflicting dark text styles */
+
+.fight-belt {
+  font-size: 11px;
+  color: #d4af37;
+  font-weight: bold;
+  text-align: center;
+  margin-top: 4px;
+}
+
+/* Expandable fight card styles - merging with base styles */
+.fight-card {
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 15px;
+  padding: 30px;
+  min-height: 120px;
+  cursor: pointer;
+  transition: min-height 0.3s ease;
+  backdrop-filter: blur(10px);
+  text-align: left;
+  position: relative;
+  overflow: hidden;
+}
+
+.fight-card.expanded {
+  min-height: 300px;
+}
+
+.fight-extra-details {
+  display: none;
+}
+
+.fight-card.expanded .fight-extra-details {
+  display: flex;
+  flex-direction: column;
+}
+
+/* All expanded content styling removed - let it be regular content */
+
+.fighter-records {
+  display: none; /* Hidden for now - will re-enable when records scraping is fixed */
+}
+
+/* Score This Fight Button */
+.score-fight-button {
+  display: none; /* Hidden by default */
+  margin-top: 15px;
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-family: 'Orbitron', monospace;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(30, 64, 175, 0.3);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  align-self: flex-end; /* Aligns to bottom right */
+}
+
+.score-fight-button:hover {
+  background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(30, 64, 175, 0.4);
+}
+
+.score-fight-button:active {
+  transform: translateY(0);
+}
+
+/* Show button when card is expanded */
+.fight-card.expanded .score-fight-button {
+  display: block;
+}
+
+.fighter-record-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+}
+
+.fighter-record-item .fighter-name {
+  font-size: 12px;
+  font-weight: bold;
+  color: #fff;
+  margin-bottom: 2px;
+}
+
+.fighter-record-item .fighter-record {
+  font-size: 11px;
+  color: #ccc;
+}
+
+/* Mobile Responsiveness for Upcoming Fights */
+@media (max-width: 480px) {
+  .upcoming-fights-title {
+    font-size: 1.6rem;
+  }
+  
+  .upcoming-fights-subtitle {
+    font-size: 0.9rem;
+  }
+  
+  .fight-card {
+    padding: 15px;
+  }
+  
+  .fighter-names {
+    font-size: 1rem;
+  }
+  
+  .fight-main-info {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .fight-date {
+    text-align: left;
+    font-size: 0.8rem;
+  }
+  
+  .fight-details {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .fight-weight, .fight-network {
+    margin-left: 0;
+  }
+}
+
+/* Mobile optimizations */
+@media (max-width: 480px) {
+  .login-container {
+    padding: 25px 15px;
+  }
+  
+  .app-title {
+    font-size: 32px;
+  }
+  
+  .form-group input {
+    font-size: 16px;
+    padding: 10px 14px;
+  }
+}
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+}
+
+body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+  color: var(--textColor);
+  margin: 0;
+  padding: 20px;
+  width: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  overflow: hidden;
+}
+
+.phone-frame {
+  width: 375px;
+  height: 700px;
+  background: var(--phoneBackground);
+  border-radius: 30px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+  position: relative;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border: 8px solid #2d3748;
+}
+
+.scorecard {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  padding: 20px;
+  background: var(--scorecardBackground);
+  backdrop-filter: blur(10px);
+}
+
+.boxer-info-container {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 15px;
+  gap: 10px;
+}
+
+.boxer-info {
+  padding: 12px;
+  border-radius: 15px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 49%;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(10px);
+}
+
+.boxer-info.blue {
+  background: var(--blueBoxColor);
+}
+
+.boxer-info.red {
+  background: var(--redBoxColor);
+}
+
+.boxer-name {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+  border: 2px solid var(--borderColor);
+  border-radius: 10px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+  background: rgba(128, 128, 128, 0.2);
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+.boxer-name:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+button {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+  margin-bottom: 8px;
+  width: 100%;
+  font-size: 13px;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  box-shadow: var(--buttonShadow);
+  white-space: nowrap;
+}
+
+.blue-won {
+  background: var(--blueButtonColor);
+  color: white;
+}
+
+.blue-won:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--buttonHoverShadow);
+}
+
+.red-won {
+  background: var(--redButtonColor);
+  color: white;
+}
+
+.red-won:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--buttonHoverShadow);
+}
+
+.running-total {
+  margin-top: 5px;
+  font-size: 18px;
+  font-weight: 700;
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  color: white;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.rounds-container {
+  flex-grow: 1;
+  padding: 10px;
+  border: 1px solid var(--borderColor);
+  border-radius: 10px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.score-grid {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  flex-grow: 1;
+}
+
+.blue-column, .red-column, .round-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 30%;
+}
+
+.blue-column {
+  order: 1;
+}
+
+.round-column {
+  order: 2;
+}
+
+.red-column {
+  order: 3;
+}
+
+.column-label {
+  font-weight: bold;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.blue-scores, .red-scores, .round-numbers {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  flex-grow: 1;
+}
+
+.score-cell, .round-number {
+  height: 30px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid var(--borderColor);
+  margin-bottom: 3px;
+  border-radius: 12px;
+  font-size: 16px;
+  background: var(--roundBackgroundColor);
+  backdrop-filter: blur(5px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.score-cell.blue-score {
+  background: var(--blueBoxColor);
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.score-cell.red-score {
+  background: var(--redBoxColor);
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.round-number {
+  background: var(--roundBackgroundColor);
+  color: var(--textColor);
+  font-weight: 600;
+}
+
+/* Final overlay styles */
+.final-center-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: var(--overlayBackground);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 10;
+}
+
+.final-scorecard {
+  background: white;
+  border-radius: 8px;
+  width: 95%;
+  max-width: none;
+  padding: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  margin: 10px auto;
+}
+
+.scorecard-header {
+  margin-bottom: 1px;
+}
+
+.header-row {
+  display: grid;
+  grid-template-columns: 25px 1fr 25px;
+  gap: 1px;
+  background: #000;
+  border: 1px solid #000;
+}
+
+.header-cell {
+  background: white;
+  padding: 4px;
+  text-align: center;
+  font-weight: bold;
+  font-size: 12px;
+  border-bottom: 1px solid #000;
+}
+
+.header-cell.title {
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.scorecard-body {
+  display: grid;
+  grid-template-columns: 25px 1fr 25px;
+  gap: 1px;
+  background: #000;
+  border: 1px solid #000;
+  margin-bottom: 1px;
+}
+
+.round-row {
+  display: contents;
+}
+
+.round-cell {
+  background: #f0f0f0;
+  padding: 2px 4px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.names-cell {
+  background: white;
+  padding: 2px 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 10px;
+}
+
+.points-cell {
+  background: white;
+  padding: 2px 4px;
+  text-align: right;
+  font-size: 10px;
+  font-weight: bold;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.scorecard-footer {
+  background: #000;
+  color: white;
+  padding: 4px;
+}
+
+.total-row {
+  display: grid;
+  grid-template-columns: 25px 1fr;
+  gap: 8px;
+  align-items: center;
+}
+
+.total-label {
+  font-weight: bold;
+  font-size: 12px;
+}
+
+.total-scores {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.blue-total {
+  color: #1e40af;
+}
+
+.red-total {
+  color: #dc2626;
+}
+
+.total-value {
+  text-align: right;
+  font-weight: bold;
+  font-size: 12px;
+}
+
+.final-summary {
+  display: flex;
+  justify-content: space-between;
+  padding: 15px 40px;
+  margin-top: 10px;
+  border-top: 1px solid #ddd;
+}
+
+.summary-score {
+  text-align: center;
+}
+
+.corner-label {
+  display: block;
+  font-size: 14px;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.score-value {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.score-value.blue-final {
+  color: #1e40af;
+}
+
+.score-value.red-final {
+  color: #dc2626;
+}
+
+/* Score picker styles */
+.score-cell {
+  position: relative;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.score-cell.editing {
+  transform: scale(1.1);
+  z-index: 100;
+}
+
+.score-cell.blue-score.editing {
+  background: rgba(59, 130, 246, 0.8) !important;
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.6) !important;
+}
+
+.score-cell.red-score.editing {
+  background: rgba(239, 68, 68, 0.8) !important;
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.6) !important;
+}
+
+.score-cell.editing .score-display {
+  opacity: 0;
+  transform: translateY(-20px);
+}
+
+.score-cell.editing .score-picker-inline {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.score-display {
+  transition: all 0.3s ease;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.score-picker-inline {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.3s ease;
+  background: inherit;
+  border-radius: inherit;
+}
+
+.score-picker-inline-item {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 700;
+  color: white;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  opacity: 0.5;
+  transform: scale(0.85) translateY(0);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  will-change: transform, opacity, font-size;
+  pointer-events: none;
+}
+
+.score-picker-inline-item.selected {
+  opacity: 1;
+  transform: scale(1.15) translateY(0);
+  font-size: 20px;
+  font-weight: 800;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.score-picker-inline-item.above {
+  transform: translateY(-120%) scale(0.7);
+  opacity: 0.4;
+  font-size: 14px;
+}
+
+.score-picker-inline-item.below {
+  transform: translateY(120%) scale(0.7);
+  opacity: 0.4;
+  font-size: 14px;
+}
+
+/* Visual indicator for modified scores */
+.score-modified {
+  position: relative;
+}
+
+.score-modified::after {
+  content: '*';
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  font-size: 12px;
+  color: red;
+}
+
+/* New fight button */
+.new-fight-button {
+  margin-top: 20px;
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 16px;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 4px 15px rgba(5, 150, 105, 0.4);
+  width: 80%;
+  max-width: 300px;
+}
+
+.new-fight-button:hover {
+  background: linear-gradient(135deg, #047857 0%, #065f46 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(5, 150, 105, 0.6);
+}
+
+/* Media query for mobile responsiveness */
+@media (max-width: 480px) {
+  .phone-frame {
+    width: 100%;
+    height: 100%;
+    border-radius: 0;
+    box-shadow: none;
+  }
+}
+
+/* Round indicator */
+.round-indicator {
+  text-align: center;
+  margin-top: 10px;
+  padding: 5px;
+  background: transparent;
+  border: none;
+}
+
+.round-text {
+  font-family: 'Orbitron', 'Courier New', monospace;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--textColor);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+/* Refresh button and loading styles */
+.refresh-button {
+  background: var(--blueBoxColor);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: all 0.3s ease;
+}
+
+.refresh-button:hover {
+  background: #0056b3;
+  transform: translateY(-2px);
+}
+
+.loading-message {
+  text-align: center;
+  color: #ccc;
+  font-size: 18px;
+  padding: 40px;
+  font-style: italic;
+}
