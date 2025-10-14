@@ -175,18 +175,12 @@ function setupHomeScreenListeners() {
     scoreButton.removeEventListener('click', handleScoreMyOwnFight);
     scoreButton.addEventListener('click', handleScoreMyOwnFight);
     console.log('Score button listener attached');
-    
-    // Add a simple click handler for debugging
-    scoreButton.onclick = function(e) {
-      console.log('Button clicked via onclick!');
-      e.preventDefault();
-      handleScoreMyOwnFight();
-    };
   } else {
     console.error('Score button not found!');
   }
   
   if (upcomingFightsButton) {
+    upcomingFightsButton.removeEventListener('click', handleUpcomingFights);
     upcomingFightsButton.addEventListener('click', handleUpcomingFights);
     console.log('Upcoming fights button listener attached');
   } else {
@@ -194,20 +188,9 @@ function setupHomeScreenListeners() {
   }
   
   if (liveEventsButton) {
+    liveEventsButton.removeEventListener('click', handleLiveEvents);
     liveEventsButton.addEventListener('click', handleLiveEvents);
     console.log('Live events button listener attached');
-    
-    // Add debugging click handler
-    liveEventsButton.onclick = function(e) {
-      console.log('Live Events clicked via onclick!');
-      e.preventDefault();
-      handleLiveEvents();
-    };
-    
-    // Test if button is clickable at all
-    liveEventsButton.style.cursor = 'pointer';
-    liveEventsButton.style.border = '2px solid red'; // Temporary visual test
-    console.log('Live Events button styled for testing');
   } else {
     console.error('Live events button not found!');
   }
