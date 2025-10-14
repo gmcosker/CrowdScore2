@@ -1,0 +1,1170 @@
+// Add this at the start of your script.js file
+
+// User authentication state
+let currentUser = null;
+let isLoggedIn = false;
+
+function checkLoginStatus() {
+  // Clear localStorage for testing - remove this line in production
+  localStorage.removeItem('crowdscore_user');
+  
+  const savedUser = localStorage.getItem('crowdscore_user');
+  if (savedUser) {
+    currentUser = JSON.parse(savedUser);
+    isLoggedIn = true;
+    showHomeScreen();
+  } else {
+    showLoginScreen();
+  }
+}
+
+function showLoginScreen() {
+  document.getElementById('login-overlay').style.display = 'flex';
+  document.getElementById('main-app').style.display = 'none';
+  document.getElementById('home-screen').style.display = 'none';
+  document.getElementById('upcoming-fights-screen').style.display = 'none';
+}
+
+function showMainApp() {
+  console.log('showMainApp() called - switching to scoring interface');
+  const loginOverlay = document.getElementById('login-overlay');
+  const homeScreen = document.getElementById('home-screen');
+  const upcomingFightsScreen = document.getElementById('upcoming-fights-screen');
+  const mainApp = document.getElementById('main-app');
+  
+  console.log('Elements found:', {
+    loginOverlay: !!loginOverlay,
+    homeScreen: !!homeScreen,
+    upcomingFightsScreen: !!upcomingFightsScreen,
+    mainApp: !!mainApp
+  });
+  
+  if (loginOverlay) loginOverlay.style.display = 'none';
+  if (homeScreen) homeScreen.style.display = 'none';
+  if (upcomingFightsScreen) upcomingFightsScreen.style.display = 'none';
+  if (mainApp) {
+    mainApp.style.display = 'block';
+    mainApp.style.visibility = 'visible';
+    mainApp.style.opacity = '1';
+    mainApp.style.position = 'relative';
+    mainApp.style.zIndex = '9999';
+    console.log('Main app display set to block');
+    console.log('Main app computed styles:', {
+      display: window.getComputedStyle(mainApp).display,
+      visibility: window.getComputedStyle(mainApp).visibility,
+      opacity: window.getComputedStyle(mainApp).opacity,
+      position: window.getComputedStyle(mainApp).position
+    });
+  }
+  
+  initializeMainApp();
+  console.log('Main app should now be visible');
+  
+  // Test if main-app is actually visible
+  setTimeout(() => {
+    const mainAppElement = document.getElementById('main-app');
+    if (mainAppElement) {
+      const rect = mainAppElement.getBoundingClientRect();
+      console.log('Main app bounding rect:', {
+        top: rect.top,
+        left: rect.left,
+        width: rect.width,
+        height: rect.height,
+        visible: rect.width > 0 && rect.height > 0
+      });
+    }
+  }, 100);
+}
+
+function showHomeScreen() {
+  console.log('Showing home screen...');
+  document.getElementById('login-overlay').style.display = 'none';
+  document.getElementById('main-app').style.display = 'none';
+  document.getElementById('upcoming-fights-screen').style.display = 'none';
+  document.getElementById('home-screen').style.display = 'flex';
+  
+  // Ensure event listeners are attached when home screen is shown
+  setupHomeScreenListeners();
+  console.log('Home screen setup complete');
+}
+
+function setupAuthListeners() {
+  // Simple, working event listeners
+  document.getElementById('login-button').addEventListener('click', handleLogin);
+  document.getElementById('signup-button').addEventListener('click', handleSignup);
+  
+  // Sign Up / Sign In toggle links
+  document.getElementById('show-signup').addEventListener('click', function(e) {
+    e.preventDefault();
+    document.getElementById('login-form').style.display = 'none';
+    document.getElementById('signup-form').style.display = 'block';
+  });
+
+  document.getElementById('show-login').addEventListener('click', function(e) {
+    e.preventDefault();
+    document.getElementById('signup-form').style.display = 'none';
+    document.getElementById('login-form').style.display = 'block';
+  });
+
+  // Back to home button
+  const backButton = document.getElementById('back-to-home');
+  if (backButton) {
+    backButton.addEventListener('click', function() {
+      showHomeScreen();
+    });
+  }
+  
+  // Back to home button from upcoming fights
+  const backFromFightsButton = document.getElementById('back-to-home-from-fights');
+  if (backFromFightsButton) {
+    backFromFightsButton.addEventListener('click', function() {
+      showHomeScreen();
+    });
+  }
+
+  // Add Enter key support for all input fields
+  ['login-email', 'login-password', 'signup-name', 'signup-email', 'signup-password', 'signup-confirm']
+    .forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.addEventListener('keypress', function(e) {
+          if (e.key === 'Enter') {
+            if (id.startsWith('login')) {
+              handleLogin();
+            } else {
+              handleSignup();
+            }
+          }
+        });
+      }
+    });
+}
+
+function setupHomeScreenListeners() {
+  // Home screen navigation - attach when home screen is shown
+  const scoreButton = document.getElementById('score-my-own-fight');
+  const upcomingFightsButton = document.getElementById('upcoming-fights');
+  console.log('Setting up home screen listeners...');
+  console.log('Score button found:', !!scoreButton);
+  console.log('Upcoming fights button found:', !!upcomingFightsButton);
+  
+  if (scoreButton) {
+    // Remove any existing listeners to avoid duplicates
+    scoreButton.removeEventListener('click', handleScoreMyOwnFight);
+    scoreButton.addEventListener('click', handleScoreMyOwnFight);
+    console.log('Score button listener attached');
+    
+    // Add a simple click handler for debugging
+    scoreButton.onclick = function(e) {
+      console.log('Button clicked via onclick!');
+      e.preventDefault();
+      handleScoreMyOwnFight();
+    };
+  } else {
+    console.error('Score button not found!');
+  }
+  
+  if (upcomingFightsButton) {
+    upcomingFightsButton.addEventListener('click', handleUpcomingFights);
+    console.log('Upcoming fights button listener attached');
+  } else {
+    console.error('Upcoming fights button not found!');
+  }
+}
+
+function handleScoreMyOwnFight() {
+  console.log('Score My Own Fight clicked!'); // Debug log
+  showMainApp();
+}
+
+function handleUpcomingFights() {
+  console.log('Upcoming Fights clicked!'); // Debug log
+  showUpcomingFightsScreen();
+}
+
+function showUpcomingFightsScreen() {
+  console.log('Showing upcoming fights screen...');
+  document.getElementById('login-overlay').style.display = 'none';
+  document.getElementById('main-app').style.display = 'none';
+  document.getElementById('home-screen').style.display = 'none';
+  document.getElementById('upcoming-fights-screen').style.display = 'flex';
+  
+  // Load and display mock fight data
+  loadUpcomingFights();
+  console.log('Upcoming fights screen setup complete');
+}
+
+function loadUpcomingFights() {
+  // Mock fight data - this will be replaced with ESPN API data later
+  const mockFights = [
+    {
+      id: 'fight_1',
+      fighter1: 'Tyson Fury',
+      fighter2: 'Oleksandr Usyk',
+      date: '2024-12-21',
+      venue: 'Riyadh, Saudi Arabia',
+      weightClass: 'Heavyweight',
+      network: 'ESPN+',
+      status: 'upcoming'
+    },
+    {
+      id: 'fight_2',
+      fighter1: 'Deontay Wilder',
+      fighter2: 'Anthony Joshua',
+      date: '2024-12-23',
+      venue: 'London, England',
+      weightClass: 'Heavyweight',
+      network: 'DAZN',
+      status: 'upcoming'
+    },
+    {
+      id: 'fight_3',
+      fighter1: 'Canelo Alvarez',
+      fighter2: 'Jermell Charlo',
+      date: '2024-12-14',
+      venue: 'Las Vegas, NV',
+      weightClass: 'Super Middleweight',
+      network: 'Showtime',
+      status: 'live'
+    },
+    {
+      id: 'fight_4',
+      fighter1: 'Gervonta Davis',
+      fighter2: 'Ryan Garcia',
+      date: '2024-12-28',
+      venue: 'Brooklyn, NY',
+      weightClass: 'Lightweight',
+      network: 'ESPN',
+      status: 'upcoming'
+    },
+    {
+      id: 'fight_5',
+      fighter1: 'Terence Crawford',
+      fighter2: 'Errol Spence Jr',
+      date: '2024-12-30',
+      venue: 'Los Angeles, CA',
+      weightClass: 'Welterweight',
+      network: 'PPV',
+      status: 'upcoming'
+    }
+  ];
+  
+  const fightsList = document.getElementById('fights-list');
+  fightsList.innerHTML = ''; // Clear existing content
+  
+  mockFights.forEach(fight => {
+    const fightCard = createFightCard(fight);
+    fightsList.appendChild(fightCard);
+  });
+  
+  // Add click handlers for fight cards
+  setupFightCardListeners();
+}
+
+function createFightCard(fight) {
+  const fightCard = document.createElement('div');
+  fightCard.className = 'fight-card';
+  fightCard.dataset.fightId = fight.id;
+  
+  const statusClass = fight.status === 'live' ? 'live' : '';
+  const statusText = fight.status === 'live' ? 'LIVE' : 'UPCOMING';
+  
+  fightCard.innerHTML = `
+    <div class="fight-status ${statusClass}">${statusText}</div>
+    <div class="fight-main-info">
+      <div class="fighters">
+        <div class="fighter-names">${fight.fighter1}</div>
+        <div class="fight-vs">vs</div>
+        <div class="fighter-names">${fight.fighter2}</div>
+      </div>
+      <div class="fight-date">${formatDate(fight.date)}</div>
+    </div>
+    <div class="fight-details">
+      <div class="fight-venue">${fight.venue}</div>
+      <div class="fight-weight">${fight.weightClass}</div>
+      <div class="fight-network">${fight.network}</div>
+    </div>
+  `;
+  
+  return fightCard;
+}
+
+function formatDate(dateString) {
+  const date = new Date(dateString);
+  const options = { 
+    month: 'short', 
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  };
+  return date.toLocaleDateString('en-US', options);
+}
+
+function setupFightCardListeners() {
+  const fightCards = document.querySelectorAll('.fight-card');
+  fightCards.forEach(card => {
+    card.addEventListener('click', function() {
+      const fightId = this.dataset.fightId;
+      handleFightCardClick(fightId);
+    });
+  });
+}
+
+function handleFightCardClick(fightId) {
+  console.log('Fight card clicked:', fightId);
+  // For now, just show an alert. Later this will navigate to the scoring interface
+  // with pre-populated fighter names and themed background
+  alert(`Fight ${fightId} selected! This will open the scoring interface with pre-populated data.`);
+  
+  // TODO: In future iterations, this will:
+  // 1. Navigate to the main scoring app
+  // 2. Pre-populate fighter names
+  // 3. Apply themed background based on the fight
+  // 4. Set up live scoring if the fight is currently live
+}
+
+function showUpcomingFightsScreen() {
+  console.log('Showing upcoming fights screen...');
+  document.getElementById('login-overlay').style.display = 'none';
+  document.getElementById('main-app').style.display = 'none';
+  document.getElementById('home-screen').style.display = 'none';
+  document.getElementById('upcoming-fights-screen').style.display = 'flex';
+  
+  // Load and display mock fight data
+  loadUpcomingFights();
+  console.log('Upcoming fights screen setup complete');
+}
+
+function loadUpcomingFights() {
+  // Mock fight data - this will be replaced with ESPN API data later
+  const mockFights = [
+    {
+      id: 'fight_1',
+      fighter1: 'Tyson Fury',
+      fighter2: 'Oleksandr Usyk',
+      date: '2024-12-21',
+      venue: 'Riyadh, Saudi Arabia',
+      weightClass: 'Heavyweight',
+      network: 'ESPN+',
+      status: 'upcoming'
+    },
+    {
+      id: 'fight_2',
+      fighter1: 'Deontay Wilder',
+      fighter2: 'Anthony Joshua',
+      date: '2024-12-23',
+      venue: 'London, England',
+      weightClass: 'Heavyweight',
+      network: 'DAZN',
+      status: 'upcoming'
+    },
+    {
+      id: 'fight_3',
+      fighter1: 'Canelo Alvarez',
+      fighter2: 'Jermell Charlo',
+      date: '2024-12-14',
+      venue: 'Las Vegas, NV',
+      weightClass: 'Super Middleweight',
+      network: 'Showtime',
+      status: 'live'
+    },
+    {
+      id: 'fight_4',
+      fighter1: 'Gervonta Davis',
+      fighter2: 'Ryan Garcia',
+      date: '2024-12-28',
+      venue: 'Brooklyn, NY',
+      weightClass: 'Lightweight',
+      network: 'ESPN',
+      status: 'upcoming'
+    },
+    {
+      id: 'fight_5',
+      fighter1: 'Terence Crawford',
+      fighter2: 'Errol Spence Jr',
+      date: '2024-12-30',
+      venue: 'Los Angeles, CA',
+      weightClass: 'Welterweight',
+      network: 'PPV',
+      status: 'upcoming'
+    }
+  ];
+  
+  const fightsList = document.getElementById('fights-list');
+  fightsList.innerHTML = ''; // Clear existing content
+  
+  mockFights.forEach(fight => {
+    const fightCard = createFightCard(fight);
+    fightsList.appendChild(fightCard);
+  });
+  
+  // Add click handlers for fight cards
+  setupFightCardListeners();
+}
+
+function createFightCard(fight) {
+  const fightCard = document.createElement('div');
+  fightCard.className = 'fight-card';
+  fightCard.dataset.fightId = fight.id;
+  
+  const statusClass = fight.status === 'live' ? 'live' : '';
+  const statusText = fight.status === 'live' ? 'LIVE' : 'UPCOMING';
+  
+  fightCard.innerHTML = `
+    <div class="fight-status ${statusClass}">${statusText}</div>
+    <div class="fight-main-info">
+      <div class="fighters">
+        <div class="fighter-names">${fight.fighter1}</div>
+        <div class="fight-vs">vs</div>
+        <div class="fighter-names">${fight.fighter2}</div>
+      </div>
+      <div class="fight-date">${formatDate(fight.date)}</div>
+    </div>
+    <div class="fight-details">
+      <div class="fight-venue">${fight.venue}</div>
+      <div class="fight-weight">${fight.weightClass}</div>
+      <div class="fight-network">${fight.network}</div>
+    </div>
+  `;
+  
+  return fightCard;
+}
+
+function formatDate(dateString) {
+  const date = new Date(dateString);
+  const options = { 
+    month: 'short', 
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  };
+  return date.toLocaleDateString('en-US', options);
+}
+
+function setupFightCardListeners() {
+  const fightCards = document.querySelectorAll('.fight-card');
+  fightCards.forEach(card => {
+    card.addEventListener('click', function() {
+      const fightId = this.dataset.fightId;
+      handleFightCardClick(fightId);
+    });
+  });
+}
+
+function handleFightCardClick(fightId) {
+  console.log('Fight card clicked:', fightId);
+  // For now, just show an alert. Later this will navigate to the scoring interface
+  // with pre-populated fighter names and themed background
+  alert(`Fight ${fightId} selected! This will open the scoring interface with pre-populated data.`);
+  
+  // TODO: In future iterations, this will:
+  // 1. Navigate to the main scoring app
+  // 2. Pre-populate fighter names
+  // 3. Apply themed background based on the fight
+  // 4. Set up live scoring if the fight is currently live
+}
+
+function handleLogin() {
+  const email = document.getElementById('login-email').value;
+  const password = document.getElementById('login-password').value;
+
+  if (!email || !password) {
+    showError('Please fill in all fields');
+    return;
+  }
+
+  // Simple validation (in a real app, this would check against a backend)
+  const savedUsers = JSON.parse(localStorage.getItem('crowdscore_users') || '[]');
+  const user = savedUsers.find(u => u.email === email && u.password === password);
+
+  if (user) {
+    currentUser = user;
+    isLoggedIn = true;
+    localStorage.setItem('crowdscore_user', JSON.stringify(user));
+    showHomeScreen();
+    showSuccess('Welcome back, ' + user.name + '!');
+  } else {
+    showError('Invalid email or password');
+  }
+}
+
+function handleSignup() {
+  const name = document.getElementById('signup-name').value;
+  const email = document.getElementById('signup-email').value;
+  const password = document.getElementById('signup-password').value;
+  const confirm = document.getElementById('signup-confirm').value;
+
+  if (!name || !email || !password || !confirm) {
+    showError('Please fill in all fields');
+    return;
+  }
+
+  if (password !== confirm) {
+    showError('Passwords do not match');
+    return;
+  }
+
+  if (password.length < 6) {
+    showError('Password must be at least 6 characters');
+    return;
+  }
+
+  // Check if user already exists
+  const savedUsers = JSON.parse(localStorage.getItem('crowdscore_users') || '[]');
+  if (savedUsers.find(u => u.email === email)) {
+    showError('User with this email already exists');
+    return;
+  }
+
+  // Create new user
+  const newUser = {
+    id: Date.now(),
+    name: name,
+    email: email,
+    password: password,
+    createdAt: new Date().toISOString()
+  };
+
+  savedUsers.push(newUser);
+  localStorage.setItem('crowdscore_users', JSON.stringify(savedUsers));
+
+  currentUser = newUser;
+  isLoggedIn = true;
+  localStorage.setItem('crowdscore_user', JSON.stringify(newUser));
+
+  showHomeScreen();
+  showSuccess('Account created successfully! Welcome, ' + name + '!');
+}
+
+function showError(message) {
+  document.querySelectorAll('.error-message').forEach(el => el.remove());
+  const errorDiv = document.createElement('div');
+  errorDiv.className = 'error-message';
+  errorDiv.textContent = message;
+  errorDiv.style.display = 'block';
+
+  const currentForm = document.getElementById('login-form').style.display !== 'none' ? 
+    document.getElementById('login-form') : document.getElementById('signup-form');
+  currentForm.appendChild(errorDiv);
+
+  setTimeout(() => {
+    errorDiv.remove();
+  }, 3000);
+}
+
+function showSuccess(message) {
+  document.querySelectorAll('.success-message').forEach(el => el.remove());
+  const successDiv = document.createElement('div');
+  successDiv.className = 'success-message';
+  successDiv.textContent = message;
+  successDiv.style.display = 'block';
+
+  const currentForm = document.getElementById('login-form').style.display !== 'none' ? 
+    document.getElementById('login-form') : document.getElementById('signup-form');
+  currentForm.appendChild(successDiv);
+
+  setTimeout(() => {
+    successDiv.remove();
+  }, 3000);
+}
+
+// Initialize app with auth
+document.addEventListener('DOMContentLoaded', function() {
+  console.log('DOM Content Loaded - Initializing app...');
+  setupAuthListeners();
+  checkLoginStatus();
+  console.log('App initialization complete');
+  
+  // Test if button exists on page load
+  const testButton = document.getElementById('score-my-own-fight');
+  console.log('Button exists on page load:', !!testButton);
+});
+
+// Your existing app code goes here, wrapped in initializeMainApp function
+let isMainAppInitialized = false;
+
+function initializeMainApp() {
+  if (isMainAppInitialized) {
+    console.log('Main app already initialized, skipping...');
+    return;
+  }
+  
+  console.log('initializeMainApp() called - setting up scoring interface');
+  const blueName = document.getElementById('blue-name');
+  const redName = document.getElementById('red-name');
+  console.log('Blue name element found:', !!blueName);
+  console.log('Red name element found:', !!redName);
+  const blueWonButton = document.querySelector('.blue-won');
+  const redWonButton = document.querySelector('.red-won');
+  const blueScoresContainer = document.querySelector('.blue-scores');
+  const redScoresContainer = document.querySelector('.red-scores');
+  const roundNumbersContainer = document.querySelector('.round-numbers');
+  const blueRunningTotal = document.querySelector('.boxer-info.blue .running-total-value');
+  const redRunningTotal = document.querySelector('.boxer-info.red .running-total-value');
+  const finalCenterOverlay = document.querySelector('.final-center-overlay');
+  const blueFinalName = document.querySelectorAll('.blue-final-name');
+  const redFinalName = document.querySelectorAll('.red-final-name');
+  const blueFinal = document.querySelectorAll('.blue-final');
+  const redFinal = document.querySelectorAll('.red-final');
+  
+  // Theme functions
+  const toggleThemeButton = document.getElementById('toggle-theme');
+  const resetThemeButton = document.getElementById('reset-theme');
+  const newFightButton = document.getElementById('new-fight');
+  
+  // Theme definitions
+  const themes = {
+    default: {
+      primaryColor: '#f5f5f5',
+      phoneBackground: 'white',
+      boxShadowColor: 'rgba(0, 0, 0, 0.2)',
+      blueBoxColor: '#e6f0ff',
+      redBoxColor: '#ffe6e6',
+      blueButtonColor: '#0066cc',
+      redButtonColor: '#cc0000',
+      borderColor: '#ddd',
+      roundBackgroundColor: '#f0f0f0',
+      overlayBackground: 'rgba(255, 255, 255, 0.9)',
+      textColor: '#333'
+    },
+    canelovscrawford: {
+      primaryColor: '#000000',
+      phoneBackground: 'rgba(20, 20, 20, 0.9)',
+      boxShadowColor: 'rgba(255, 0, 0, 0.3)',
+      blueBoxColor: 'rgba(30, 30, 150, 0.8)',
+      redBoxColor: 'rgba(150, 30, 30, 0.8)',
+      blueButtonColor: '#0033cc',
+      redButtonColor: '#cc0000',
+      borderColor: '#555',
+      roundBackgroundColor: '#333',
+      overlayBackground: 'rgba(0, 0, 0, 0.9)',
+      textColor: '#fff'
+    }
+  };
+  
+  // Current active theme
+  let activeTheme = 'default';
+  
+  // Theme toggle event listener
+  toggleThemeButton.addEventListener('click', function() {
+    const newTheme = (activeTheme === 'default') ? 'canelovscrawford' : 'default';
+    applyTheme(newTheme);
+  });
+  
+  // Reset theme event listener
+  resetThemeButton.addEventListener('click', function() {
+    applyTheme('default');
+  });
+  
+  // Apply theme function
+  function applyTheme(themeName) {
+    if (themes[themeName]) {
+      activeTheme = themeName;
+      const theme = themes[themeName];
+      const root = document.documentElement;
+      
+      // Apply all theme variables
+      Object.entries(theme).forEach(([property, value]) => {
+        root.style.setProperty(`--${property}`, value);
+      });
+    }
+  }
+
+  // Create score cells for all rounds
+  createScoreCells();
+
+  // Initialize event listeners
+  initializeEventListeners();
+
+  // Create score cells for all rounds
+  function createScoreCells() {
+    // Clear existing content
+    blueScoresContainer.innerHTML = '';
+    redScoresContainer.innerHTML = '';
+    roundNumbersContainer.innerHTML = '';
+
+    // Create cells for all 12 rounds
+    for (let i = 1; i <= 12; i++) {
+      // Create round number
+      const roundNumber = document.createElement('div');
+      roundNumber.className = 'round-number';
+      roundNumber.textContent = i;
+      roundNumbersContainer.appendChild(roundNumber);
+
+      // Create blue score cell
+      const blueScoreCell = document.createElement('div');
+      blueScoreCell.className = 'score-cell blue-score';
+      blueScoreCell.dataset.round = i;
+      
+      // Add score display element
+      const blueScoreDisplay = document.createElement('div');
+      blueScoreDisplay.className = 'score-display';
+      blueScoreCell.appendChild(blueScoreDisplay);
+      
+      blueScoresContainer.appendChild(blueScoreCell);
+
+      // Create red score cell
+      const redScoreCell = document.createElement('div');
+      redScoreCell.className = 'score-cell red-score';
+      redScoreCell.dataset.round = i;
+      
+      // Add score display element
+      const redScoreDisplay = document.createElement('div');
+      redScoreDisplay.className = 'score-display';
+      redScoreCell.appendChild(redScoreDisplay);
+      
+      redScoresContainer.appendChild(redScoreCell);
+    }
+  }
+
+  // Initialize event listeners
+  function initializeEventListeners() {
+    // Remove existing event listeners to prevent duplicates
+    const newBlueWonButton = blueWonButton.cloneNode(true);
+    blueWonButton.parentNode.replaceChild(newBlueWonButton, blueWonButton);
+    const newRedWonButton = redWonButton.cloneNode(true);
+    redWonButton.parentNode.replaceChild(newRedWonButton, redWonButton);
+    
+    // Blue won button click
+    newBlueWonButton.addEventListener('click', function() {
+      handleWinnerButtonClick('blue');
+    });
+
+    // Red won button click
+    newRedWonButton.addEventListener('click', function() {
+      handleWinnerButtonClick('red');
+    });
+
+    // Boxer name input event
+    blueName.addEventListener('input', function() {
+      updateBoxerName('blue');
+    });
+
+    redName.addEventListener('input', function() {
+      updateBoxerName('red');
+    });
+
+    // Initialize name displays
+    updateBoxerName('blue');
+    updateBoxerName('red');
+
+    // Add click handlers to score cells
+    addScoreCellClickHandlers();
+
+    // New fight button click
+    newFightButton.addEventListener('click', function() {
+      startNewFight();
+    });
+  }
+
+  // Handle winner button click
+  function handleWinnerButtonClick(winner) {
+    const currentRound = getCurrentRound();
+    if (currentRound <= 12) {
+      const blueScoreCell = document.querySelector(`.blue-score[data-round="${currentRound}"]`);
+      const redScoreCell = document.querySelector(`.red-score[data-round="${currentRound}"]`);
+
+      if (winner === 'blue') {
+        blueScoreCell.querySelector('.score-display').textContent = '10';
+        redScoreCell.querySelector('.score-display').textContent = '9';
+      } else {
+        blueScoreCell.querySelector('.score-display').textContent = '9';
+        redScoreCell.querySelector('.score-display').textContent = '10';
+      }
+
+      updateRunningTotals();
+      updateRoundIndicator();
+
+      // Check if all rounds are scored
+      if (currentRound === 12) {
+        showFinalScores();
+      }
+    }
+  }
+
+  // Update boxer name display
+  function updateBoxerName(color) {
+    const nameInput = document.getElementById(`${color}-name`);
+    const nameElements = document.querySelectorAll(`.${color}-final-name`);
+    nameElements.forEach(element => {
+      element.textContent = nameInput.value || (color === 'blue' ? 'Blue' : 'Red');
+    });
+  }
+
+  // Get current round
+  function getCurrentRound() {
+    const blueScores = document.querySelectorAll('.blue-score');
+    for (let i = 0; i < blueScores.length; i++) {
+      const scoreDisplay = blueScores[i].querySelector('.score-display');
+      if (!scoreDisplay || scoreDisplay.textContent.trim() === '') {
+        return i + 1;
+      }
+    }
+    return 12; // Default to last round if all are filled
+  }
+
+  // Update running totals
+  function updateRunningTotals() {
+    let blueTotal = 0;
+    let redTotal = 0;
+    const blueScores = document.querySelectorAll('.blue-score');
+    const redScores = document.querySelectorAll('.red-score');
+
+    blueScores.forEach(cell => {
+      const scoreDisplay = cell.querySelector('.score-display');
+      if (scoreDisplay && scoreDisplay.textContent.trim() !== '') {
+        blueTotal += parseInt(scoreDisplay.textContent);
+      }
+    });
+
+    redScores.forEach(cell => {
+      const scoreDisplay = cell.querySelector('.score-display');
+      if (scoreDisplay && scoreDisplay.textContent.trim() !== '') {
+        redTotal += parseInt(scoreDisplay.textContent);
+      }
+    });
+
+    blueRunningTotal.textContent = blueTotal;
+    redRunningTotal.textContent = redTotal;
+
+    // Update final scores too (only in overlay now)
+    blueFinal.forEach(element => {
+      element.textContent = blueTotal;
+    });
+
+    redFinal.forEach(element => {
+      element.textContent = redTotal;
+    });
+  }
+
+  // Update round indicator
+  function updateRoundIndicator() {
+    const currentRound = getCurrentRound();
+    const roundText = document.querySelector('.round-text');
+    if (roundText) {
+      roundText.textContent = `Round ${currentRound} of 12`;
+    }
+  }
+
+  // Show final scores overlay
+  function showFinalScores() {
+    // Get all scores and names
+    const blueScores = document.querySelectorAll('.blue-score .score-display');
+    const redScores = document.querySelectorAll('.red-score .score-display');
+    const blueName = document.getElementById('blue-name').value || 'Blue Corner';
+    const redName = document.getElementById('red-name').value || 'Red Corner';
+
+    // Get the scorecard body
+    const scorecardBody = document.querySelector('.scorecard-body');
+    scorecardBody.innerHTML = ''; // Clear existing content
+
+    // Add rows for each round
+    for (let i = 0; i < 12; i++) {
+      const blueScore = blueScores[i]?.textContent || '-';
+      const redScore = redScores[i]?.textContent || '-';
+      
+      const roundRow = document.createElement('div');
+      roundRow.className = 'round-row';
+      roundRow.innerHTML = `
+        <div class="round-cell">${i + 1}</div>
+        <div class="names-cell">
+          <div>${blueName}</div>
+          <div>${redName}</div>
+        </div>
+        <div class="points-cell">
+          <div>${blueScore}</div>
+          <div>${redScore}</div>
+        </div>
+      `;
+      
+      scorecardBody.appendChild(roundRow);
+    }
+
+    // Update totals and names
+    const blueTotal = document.querySelector('.boxer-info.blue .running-total-value').textContent;
+    const redTotal = document.querySelector('.boxer-info.red .running-total-value').textContent;
+    
+    document.querySelectorAll('.blue-total').forEach(el => el.textContent = blueTotal);
+    document.querySelectorAll('.red-total').forEach(el => el.textContent = redTotal);
+
+    // Update corner labels with actual boxer names
+    document.querySelector('.blue-corner-label').textContent = blueName;
+    document.querySelector('.red-corner-label').textContent = redName;
+
+    // Show the overlay
+    finalCenterOverlay.style.display = 'flex';
+
+    // Add share button functionality
+    const shareButton = document.getElementById('share-scorecard');
+    shareButton.addEventListener('click', shareScorecard);
+  }
+
+  // Share scorecard functionality
+  async function shareScorecard() {
+    try {
+      const scorecard = document.querySelector('.final-scorecard');
+      
+      // Use html2canvas to capture the scorecard (you'll need to add this library)
+      const canvas = await html2canvas(scorecard, {
+        backgroundColor: 'white',
+        scale: 2, // Higher quality
+        logging: false
+      });
+      
+      // Convert to blob
+      canvas.toBlob(async (blob) => {
+        try {
+          // Try native sharing first
+          if (navigator.share && navigator.canShare({ files: [blob] })) {
+            await navigator.share({
+              files: [blob],
+              title: 'Fight Scorecard',
+              text: 'Check out my fight scorecard!'
+            });
+          } else {
+            // Fallback to download
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'fight-scorecard.png';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+          }
+        } catch (error) {
+          console.error('Error sharing scorecard:', error);
+          alert('Could not share scorecard. Try downloading instead.');
+        }
+      }, 'image/png');
+    } catch (error) {
+      console.error('Error creating scorecard image:', error);
+      alert('Could not create scorecard image.');
+    }
+  }
+
+  // Start a new fight
+  function startNewFight() {
+    // Hide the final overlay
+    finalCenterOverlay.style.display = 'none';
+    
+    // Clear all scores
+    const blueScores = document.querySelectorAll('.blue-score .score-display');
+    const redScores = document.querySelectorAll('.red-score .score-display');
+    
+    blueScores.forEach(display => {
+      display.textContent = '';
+    });
+    
+    redScores.forEach(display => {
+      display.textContent = '';
+    });
+    
+    // Clear boxer names
+    blueName.value = '';
+    redName.value = '';
+    updateBoxerName('blue');
+    updateBoxerName('red');
+    
+    // Reset running totals
+    updateRunningTotals();
+    
+    // Reset round indicator
+    updateRoundIndicator();
+    
+    // Remove any modified score indicators
+    const modifiedCells = document.querySelectorAll('.score-modified');
+    modifiedCells.forEach(cell => {
+      cell.classList.remove('score-modified');
+    });
+    
+    // Close any open inline pickers
+    closeAllInlinePickers();
+  }
+
+  // Add click handlers to score cells for inline picker
+  function addScoreCellClickHandlers() {
+    const scoreCells = document.querySelectorAll('.score-cell');
+    scoreCells.forEach(cell => {
+      cell.addEventListener('click', function(e) {
+        // Only show inline picker if the cell has a score
+        if (this.querySelector('.score-display').textContent.trim() !== '') {
+          if (this.classList.contains('editing')) {
+            // If already editing, save the picker
+            saveInlinePicker(this);
+          } else {
+            // Start inline picker
+            closeAllInlinePickers();
+            startInlinePicker(this);
+          }
+          e.stopPropagation();
+        }
+      });
+    });
+
+    // Close pickers when clicking elsewhere
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest('.score-cell')) {
+        closeAllInlinePickers();
+      }
+    });
+  }
+
+  // Start inline picker for a cell
+  function startInlinePicker(cell) {
+    cell.classList.add('editing');
+    
+    // Create inline picker
+    const picker = document.createElement('div');
+    picker.className = 'score-picker-inline';
+    
+    // Create score items (10, 9, 8, 7)
+    const scores = [10, 9, 8, 7];
+    scores.forEach((score, index) => {
+      const item = document.createElement('div');
+      item.className = 'score-picker-inline-item';
+      item.textContent = score;
+      if (index === 0) item.classList.add('selected');
+      picker.appendChild(item);
+    });
+    
+    cell.appendChild(picker);
+    
+    // Add touch/mouse handlers
+    addInlineTouchHandlers(cell, picker);
+  }
+
+  // Add touch and mouse handlers for inline picker
+  function addInlineTouchHandlers(cell, picker) {
+    let startY = 0;
+    let isDragging = false;
+    const items = picker.querySelectorAll('.score-picker-inline-item');
+    
+    // Get current index based on current score
+    function getCurrentIndex() {
+      const currentScore = parseInt(cell.textContent) || 10;
+      if (currentScore === 10) return 0;
+      if (currentScore === 9) return 1;
+      if (currentScore === 8) return 2;
+      if (currentScore === 7) return 3;
+      return 0;
+    }
+    
+    let currentIndex = getCurrentIndex();
+    
+    function handleStart(e) {
+      e.preventDefault();
+      isDragging = true;
+      startY = e.type === 'touchstart' ? e.touches[0].clientY : e.clientY;
+    }
+    
+    function handleMove(e) {
+      if (!isDragging) return;
+      
+      e.preventDefault();
+      const currentY = e.type === 'touchmove' ? e.touches[0].clientY : e.clientY;
+      const deltaY = startY - currentY;
+      
+      // Simple, working logic - slower sensitivity
+      const itemHeight = 70; // Slower than original (was 40)
+      const indexChange = Math.round(deltaY / itemHeight);
+      const newIndex = Math.max(0, Math.min(3, currentIndex + indexChange));
+      
+      if (newIndex !== currentIndex) {
+        currentIndex = newIndex;
+        updateInlineSelection(picker, currentIndex);
+        const selectedValue = parseInt(items[currentIndex].textContent);
+        cell.textContent = selectedValue;
+        cell.dataset.score = selectedValue;
+      }
+    }
+    
+    function handleEnd() {
+      isDragging = false;
+    }
+    
+    // Touch events
+    picker.addEventListener('touchstart', handleStart, { passive: false });
+    picker.addEventListener('touchmove', handleMove, { passive: false });
+    picker.addEventListener('touchend', handleEnd);
+    
+    // Mouse events
+    picker.addEventListener('mousedown', handleStart);
+    document.addEventListener('mousemove', handleMove);
+    document.addEventListener('mouseup', handleEnd);
+    
+    // Add wheel support
+    picker.addEventListener('wheel', function(e) {
+      e.preventDefault();
+      const delta = e.deltaY > 0 ? 1 : -1;
+      const newIndex = Math.max(0, Math.min(3, currentIndex + delta));
+      
+      if (newIndex !== currentIndex) {
+        currentIndex = newIndex;
+        updateInlineSelection(picker, currentIndex);
+      }
+    });
+  }
+
+  // Update inline picker selection
+  function updateInlineSelection(picker, index) {
+    const items = picker.querySelectorAll('.score-picker-inline-item');
+    items.forEach((item, i) => {
+      item.classList.remove('selected', 'above', 'below');
+      if (i === index) {
+        item.classList.add('selected');
+      } else if (i < index) {
+        item.classList.add('above');
+      } else {
+        item.classList.add('below');
+      }
+    });
+  }
+
+  // Save inline picker selection
+  function saveInlinePicker(cell) {
+    const picker = cell.querySelector('.score-picker-inline');
+    const selectedItem = picker.querySelector('.score-picker-inline-item.selected');
+    const selectedScore = selectedItem.textContent;
+    
+    // Update the score display
+    const scoreDisplay = cell.querySelector('.score-display');
+    scoreDisplay.textContent = selectedScore;
+    
+    // Add visual indicator if score is not the standard 10/9
+    const isBlueCell = cell.classList.contains('blue-score');
+    const round = cell.dataset.round;
+    const oppositeCell = isBlueCell ? 
+      document.querySelector(`.red-score[data-round="${round}"]`) : 
+      document.querySelector(`.blue-score[data-round="${round}"]`);
+
+    const standardScore = (oppositeCell.querySelector('.score-display').textContent === '10') ? '9' : '10';
+
+    if (selectedScore !== standardScore) {
+      cell.classList.add('score-modified');
+    } else {
+      cell.classList.remove('score-modified');
+    }
+
+    // Update running totals
+    updateRunningTotals();
+    
+    // Remove picker and editing state
+    cell.classList.remove('editing');
+    picker.remove();
+  }
+
+  // Close all inline pickers
+  function closeAllInlinePickers() {
+    const editingCells = document.querySelectorAll('.score-cell.editing');
+    editingCells.forEach(cell => {
+      cell.classList.remove('editing');
+      const picker = cell.querySelector('.score-picker-inline');
+      if (picker) picker.remove();
+    });
+  }
+  
+  // Mark as initialized to prevent duplicate event listeners
+  isMainAppInitialized = true;
+  console.log('Main app initialization complete');
+}

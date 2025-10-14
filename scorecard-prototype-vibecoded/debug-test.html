@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Test</title>
+</head>
+<body>
+    <h1>Debug Test</h1>
+    <button id="test-button">Test Button</button>
+    <div id="result"></div>
+    
+    <script>
+        console.log('Script loaded');
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded');
+            
+            const button = document.getElementById('test-button');
+            console.log('Button found:', !!button);
+            
+            if (button) {
+                button.addEventListener('click', function() {
+                    console.log('Button clicked!');
+                    document.getElementById('result').innerHTML = 'Button works!';
+                });
+                console.log('Event listener attached');
+            }
+        });
+    </script>
+</body>
+</html>
+
+
+
+
