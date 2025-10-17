@@ -1,21 +1,53 @@
-// VERSION 65 - LIVE EVENTS DEBUGGING - Fire Emojis Added
-// This version adds extensive debugging for Live Events button
-// Created: October 12, 2025 - FIRE EMOJI DEBUGGING
+// VERSION 67 - SUPABASE INTEGRATION - Gradual Migration
+// This version adds Supabase with localStorage fallback
+// Created: October 14, 2025 - SUPABASE INTEGRATION
 
 // Script loaded successfully
+
+// FOR TESTING: Clear localStorage on each page load to test full flow
+// Remove this line when you want to keep users logged in
+localStorage.removeItem('crowdscore_user');
+localStorage.removeItem('crowdscore_users');
+console.log('🧹 Cleared localStorage for testing - you will need to log in');
 
 // User authentication state
 let currentUser = null;
 let isLoggedIn = false;
+
+// Supabase integration status
+let supabaseStatus = null;
 
 // Scorecard origin tracking
 let scorecardOrigin = 'manual'; // 'manual' or 'live-event'
 let preFilledFighter1Name = '';
 let preFilledFighter2Name = '';
 
+// Initialize Supabase integration
+function initializeSupabase() {
+  try {
+    // Check if Supabase integration is available
+    if (typeof getConnectionStatus === 'function') {
+      supabaseStatus = getConnectionStatus();
+      console.log('🔗 Supabase Status:', supabaseStatus);
+      
+      if (supabaseStatus.connected) {
+        console.log('✅ Using Supabase for data storage');
+      } else {
+        console.log('📱 Using localStorage fallback');
+      }
+    } else {
+      console.log('📱 Supabase integration not loaded, using localStorage');
+      supabaseStatus = { connected: false, method: 'localStorage' };
+    }
+  } catch (error) {
+    console.warn('⚠️ Supabase initialization failed:', error);
+    supabaseStatus = { connected: false, method: 'localStorage' };
+  }
+}
+
 function checkLoginStatus() {
-  // Clear localStorage for testing - remove this line in production
-  localStorage.removeItem('crowdscore_user');
+  // Initialize Supabase first
+  initializeSupabase();
   
   // Check if user is already logged in
   const savedUser = localStorage.getItem('crowdscore_user');
@@ -29,10 +61,22 @@ function checkLoginStatus() {
 }
 
 function showLoginScreen() {
-  document.getElementById('login-overlay').style.display = 'flex';
-  document.getElementById('main-app').style.display = 'none';
-  document.getElementById('home-screen').style.display = 'none';
-  document.getElementById('upcoming-fights-screen').style.display = 'none';
+  const elements = [
+    'login-overlay', 'main-app', 'home-screen', 'upcoming-fights-screen',
+    'live-events-screen', 'scorecard-screen', 'my-scorecards-screen',
+    'round-screen', 'final-score-screen', 'share-screen', 'admin-screen'
+  ];
+  
+  elements.forEach(id => {
+    const element = document.getElementById(id);
+    if (element) {
+      if (id === 'login-overlay') {
+        element.style.display = 'flex';
+      } else {
+        element.style.display = 'none';
+      }
+    }
+  });
 }
 
 function showMainApp() {
@@ -87,16 +131,30 @@ function showMainApp() {
 }
 
 function showHomeScreen() {
-  console.log('Showing home screen...');
+  console.log('🏠 showHomeScreen() called');
+  console.log('🏠 Hiding all screens...');
+  
   document.getElementById('login-overlay').style.display = 'none';
   document.getElementById('main-app').style.display = 'none';
   document.getElementById('upcoming-fights-screen').style.display = 'none';
   document.getElementById('live-events-screen').style.display = 'none';
-  document.getElementById('home-screen').style.display = 'flex';
+  document.getElementById('my-scorecards-screen').style.display = 'none';
+  document.getElementById('scorecard-details-screen').style.display = 'none';
+  document.getElementById('profile-screen').style.display = 'none';
+  
+  console.log('🏠 Showing home screen...');
+  const homeScreen = document.getElementById('home-screen');
+  if (homeScreen) {
+    homeScreen.style.display = 'flex';
+    console.log('✅ Home screen displayed');
+  } else {
+    console.error('❌ Home screen not found!');
+  }
   
   // Ensure event listeners are attached when home screen is shown
+  console.log('🏠 Setting up home screen listeners...');
   setupHomeScreenListeners();
-  console.log('Home screen setup complete');
+  console.log('🏠 Home screen setup complete');
 }
 
 function setupAuthListeners() {
@@ -170,6 +228,9 @@ function setupHomeScreenListeners() {
   console.log('Live events button found:', !!liveEventsButton);
   console.log('Live events button element:', liveEventsButton);
   
+  // Setup menu dropdown
+  setupMenuDropdown();
+  
   if (scoreButton) {
     // Remove any existing listeners to avoid duplicates
     scoreButton.removeEventListener('click', handleScoreMyOwnFight);
@@ -193,6 +254,587 @@ function setupHomeScreenListeners() {
     console.log('Live events button listener attached');
   } else {
     console.error('Live events button not found!');
+  }
+}
+
+// Setup menu dropdown functionality
+function setupMenuDropdown() {
+  console.log('🍔 Setting up menu dropdown...');
+  
+  const menuButton = document.getElementById('menu-button');
+  const menuDropdown = document.getElementById('menu-dropdown');
+  const myScorecardsMenu = document.getElementById('my-scorecards-menu');
+  const profileMenu = document.getElementById('profile-menu');
+  const signoutMenu = document.getElementById('signout-menu');
+  
+  if (!menuButton || !menuDropdown) {
+    console.log('❌ Menu elements not found - skipping dropdown setup');
+    return;
+  }
+  
+  console.log('✅ Menu elements found, setting up listeners');
+  
+  // Remove any existing listeners first
+  menuButton.removeEventListener('click', handleMenuToggle);
+  document.removeEventListener('click', handleMenuClose);
+  menuDropdown.removeEventListener('click', handleMenuStopPropagation);
+  
+  if (myScorecardsMenu) {
+    myScorecardsMenu.removeEventListener('click', handleMyScorecardsClick);
+  }
+  if (profileMenu) {
+    profileMenu.removeEventListener('click', handleProfileClick);
+  }
+  if (signoutMenu) {
+    signoutMenu.removeEventListener('click', handleSignOutClick);
+  }
+  
+  // Toggle dropdown on button click
+  menuButton.addEventListener('click', handleMenuToggle);
+  
+  // Close dropdown when clicking outside
+  document.addEventListener('click', handleMenuClose);
+  
+  // Prevent dropdown from closing when clicking inside it
+  menuDropdown.addEventListener('click', handleMenuStopPropagation);
+  
+  // Menu item click handlers
+  if (myScorecardsMenu) {
+    myScorecardsMenu.addEventListener('click', handleMyScorecardsClick);
+  }
+  
+  if (profileMenu) {
+    profileMenu.addEventListener('click', handleProfileClick);
+  }
+  
+  if (signoutMenu) {
+    signoutMenu.addEventListener('click', handleSignOutClick);
+  }
+  
+  console.log('✅ Menu dropdown setup complete');
+}
+
+// Separate handler functions for better cleanup
+function handleMenuToggle(e) {
+  e.stopPropagation();
+  const menuDropdown = document.getElementById('menu-dropdown');
+  const isVisible = menuDropdown.style.display === 'block';
+  menuDropdown.style.display = isVisible ? 'none' : 'block';
+  console.log('🍔 Menu toggled:', !isVisible ? 'opened' : 'closed');
+}
+
+function handleMenuClose() {
+  const menuDropdown = document.getElementById('menu-dropdown');
+  menuDropdown.style.display = 'none';
+}
+
+function handleMenuStopPropagation(e) {
+  e.stopPropagation();
+}
+
+function handleMyScorecardsClick() {
+  console.log('📋 My Scorecards clicked');
+  const menuDropdown = document.getElementById('menu-dropdown');
+  menuDropdown.style.display = 'none';
+  showMyScorecardsScreen();
+}
+
+function handleProfileClick() {
+  console.log('👤 Profile clicked');
+  const menuDropdown = document.getElementById('menu-dropdown');
+  menuDropdown.style.display = 'none';
+  showProfileScreen();
+}
+
+function handleSignOutClick() {
+  console.log('🚪 Sign Out clicked');
+  const menuDropdown = document.getElementById('menu-dropdown');
+  menuDropdown.style.display = 'none';
+  handleSignOut();
+}
+
+// Show My Scorecards Screen
+function showMyScorecardsScreen() {
+  console.log('📋 Showing My Scorecards screen');
+  
+  // Hide all other screens
+  const elements = [
+    'login-overlay', 'main-app', 'home-screen', 'upcoming-fights-screen',
+    'live-events-screen', 'scorecard-screen', 'round-screen', 
+    'final-score-screen', 'share-screen', 'admin-screen', 'profile-screen',
+    'scorecard-details-screen'
+  ];
+  
+  elements.forEach(id => {
+    const element = document.getElementById(id);
+    if (element) {
+      element.style.display = 'none';
+    }
+  });
+  
+  // Show my scorecards screen
+  const myScorecardsScreen = document.getElementById('my-scorecards-screen');
+  if (myScorecardsScreen) {
+    myScorecardsScreen.style.display = 'flex';
+    console.log('✅ My Scorecards screen displayed');
+  } else {
+    console.error('❌ My Scorecards screen not found!');
+  }
+  
+  // Load and display user's scorecards
+  loadUserScorecards();
+  
+  // Setup back button
+  const backButton = document.getElementById('back-to-home-from-scorecards');
+  if (backButton) {
+    backButton.removeEventListener('click', showHomeScreen);
+    backButton.addEventListener('click', showHomeScreen);
+  }
+}
+
+// Load user's scorecards from database
+async function loadUserScorecards() {
+  console.log('📋 Loading user scorecards...');
+  
+  const scorecardsList = document.getElementById('scorecards-list');
+  if (!scorecardsList) {
+    console.error('Scorecards list element not found');
+    return;
+  }
+  
+  // Show loading state
+  scorecardsList.innerHTML = '<div class="loading-message">Loading your scorecards...</div>';
+  
+  try {
+    let scorecards = [];
+    
+    // Try Supabase first
+    if (supabaseStatus && supabaseStatus.connected) {
+      console.log('📋 Fetching scorecards from Supabase...');
+      const result = await window.supabaseIntegration.getMyScorecards();
+      
+      if (result.success) {
+        scorecards = result.data || [];
+        console.log('📋 Loaded', scorecards.length, 'scorecards from Supabase');
+      } else {
+        console.error('📋 Supabase fetch failed:', result.error);
+        // Fallback to localStorage
+        scorecards = getScorecardsFromLocalStorage();
+      }
+    } else {
+      console.log('📋 Using localStorage fallback');
+      scorecards = getScorecardsFromLocalStorage();
+    }
+    
+    // Display scorecards
+    displayScorecards(scorecards);
+    
+  } catch (error) {
+    console.error('📋 Error loading scorecards:', error);
+    scorecardsList.innerHTML = '<div class="empty-scorecards"><div class="empty-scorecards-icon">❌</div><div class="empty-scorecards-title">Error Loading Scorecards</div><div class="empty-scorecards-text">There was a problem loading your scorecards. Please try again.</div></div>';
+  }
+}
+
+// Get scorecards from localStorage (fallback)
+function getScorecardsFromLocalStorage() {
+  const savedScorecards = localStorage.getItem('crowdscore_scorecards');
+  if (savedScorecards) {
+    return JSON.parse(savedScorecards);
+  }
+  return [];
+}
+
+// Display scorecards in the UI
+function displayScorecards(scorecards) {
+  const scorecardsList = document.getElementById('scorecards-list');
+  if (!scorecardsList) return;
+  
+  if (scorecards.length === 0) {
+    scorecardsList.innerHTML = `
+      <div class="empty-scorecards">
+        <div class="empty-scorecards-icon">📋</div>
+        <div class="empty-scorecards-title">No Scorecards Yet</div>
+        <div class="empty-scorecards-text">You haven't scored any fights yet. Start scoring to see your history here!</div>
+      </div>
+    `;
+    return;
+  }
+  
+  // Sort scorecards by date (newest first)
+  scorecards.sort((a, b) => new Date(b.fight_date) - new Date(a.fight_date));
+  
+  // Generate HTML for each scorecard
+  const scorecardsHTML = scorecards.map((scorecard, index) => {
+    const fightDate = new Date(scorecard.fight_date).toLocaleDateString();
+    const fighter1Total = scorecard.fighter1_scores.reduce((sum, score) => sum + score, 0);
+    const fighter2Total = scorecard.fighter2_scores.reduce((sum, score) => sum + score, 0);
+    
+    return `
+      <div class="scorecard-item" data-scorecard-index="${index}">
+        <div class="scorecard-item-header">
+          <h3 class="scorecard-fight-title">${scorecard.fighter1_name} vs ${scorecard.fighter2_name}</h3>
+          <span class="scorecard-date">${fightDate}</span>
+        </div>
+        
+        <div class="scorecard-fighters">
+          <div class="scorecard-fighter">
+            <div class="scorecard-fighter-name">${scorecard.fighter1_name}</div>
+            <div class="scorecard-fighter-score">${fighter1Total}</div>
+          </div>
+          <div class="scorecard-vs">VS</div>
+          <div class="scorecard-fighter">
+            <div class="scorecard-fighter-name">${scorecard.fighter2_name}</div>
+            <div class="scorecard-fighter-score">${fighter2Total}</div>
+          </div>
+        </div>
+        
+        <div class="scorecard-summary">
+          <span class="scorecard-origin">${scorecard.fight_origin === 'live-event' ? 'Live Event' : 'Manual Entry'}</span>
+          <button class="scorecard-view-btn" onclick="viewScorecardDetails(${index})">View Details</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+  
+  scorecardsList.innerHTML = scorecardsHTML;
+}
+
+// View individual scorecard details
+function viewScorecardDetails(index) {
+  console.log('📋 Viewing scorecard details for index:', index);
+  
+  // Get scorecards data
+  let scorecards = [];
+  if (supabaseStatus && supabaseStatus.connected) {
+    // We'd need to fetch again or store in memory
+    scorecards = getScorecardsFromLocalStorage(); // Fallback for now
+  } else {
+    scorecards = getScorecardsFromLocalStorage();
+  }
+  
+  if (index >= 0 && index < scorecards.length) {
+    const scorecard = scorecards[index];
+    showScorecardDetailsScreen(scorecard);
+  }
+}
+
+// Show scorecard details screen
+function showScorecardDetailsScreen(scorecard) {
+  console.log('📋 Showing scorecard details screen');
+  
+  // Hide all other screens
+  const elements = [
+    'login-overlay', 'main-app', 'home-screen', 'upcoming-fights-screen',
+    'live-events-screen', 'scorecard-screen', 'round-screen', 
+    'final-score-screen', 'share-screen', 'admin-screen', 'my-scorecards-screen'
+  ];
+  
+  elements.forEach(id => {
+    const element = document.getElementById(id);
+    if (element) {
+      element.style.display = 'none';
+    }
+  });
+  
+  // Show scorecard details screen
+  const detailsScreen = document.getElementById('scorecard-details-screen');
+  if (detailsScreen) {
+    detailsScreen.style.display = 'flex';
+  }
+  
+  // Populate the details content
+  populateScorecardDetails(scorecard);
+  
+  // Setup back button
+  const backButton = document.getElementById('back-to-scorecards');
+  if (backButton) {
+    console.log('✅ Back to scorecards button found, setting up click handler');
+    backButton.removeEventListener('click', handleBackToScorecards);
+    backButton.addEventListener('click', handleBackToScorecards);
+    
+    // Also add onclick as backup
+    backButton.onclick = function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      console.log('📋 Back to My Scorecards clicked (onclick)');
+      showMyScorecardsScreen();
+    };
+  } else {
+    console.error('❌ Back to scorecards button not found!');
+  }
+}
+
+// Populate scorecard details content
+function populateScorecardDetails(scorecard) {
+  const content = document.getElementById('scorecard-details-content');
+  if (!content) return;
+  
+  const fighter1Total = scorecard.fighter1_scores.reduce((sum, score) => sum + score, 0);
+  const fighter2Total = scorecard.fighter2_scores.reduce((sum, score) => sum + score, 0);
+  
+  // Determine winner
+  const fighter1Won = fighter1Total > fighter2Total;
+  const fighter2Won = fighter2Total > fighter1Total;
+  
+  // Count actual rounds (non-zero scores)
+  const actualRounds = Math.max(
+    scorecard.fighter1_scores.filter(score => score > 0).length,
+    scorecard.fighter2_scores.filter(score => score > 0).length
+  );
+  
+  // Generate round-by-round HTML
+  const roundsHTML = scorecard.fighter1_scores.slice(0, actualRounds).map((score, i) => `
+    <div class="details-fighter-score-btn blue">${score}</div>
+    <div class="details-round-number">${i + 1}</div>
+    <div class="details-fighter-score-btn red">${scorecard.fighter2_scores[i]}</div>
+  `).join('');
+  
+  content.innerHTML = `
+    <div class="details-fight-title">${scorecard.fighter1_name} vs ${scorecard.fighter2_name}</div>
+    
+    <div class="details-summary">
+      <div class="details-fighter-panel">
+        <div class="details-fighter-name">${scorecard.fighter1_name}</div>
+        <div class="details-fighter-result ${fighter1Won ? 'winner' : 'loser'}">
+          ${fighter1Won ? 'WON' : 'LOST'}
+        </div>
+        <div class="details-fighter-score">${fighter1Total}</div>
+      </div>
+      
+      <div class="details-fighter-panel">
+        <div class="details-fighter-name">${scorecard.fighter2_name}</div>
+        <div class="details-fighter-result ${fighter2Won ? 'winner' : 'loser'}">
+          ${fighter2Won ? 'WON' : 'LOST'}
+        </div>
+        <div class="details-fighter-score">${fighter2Total}</div>
+      </div>
+    </div>
+    
+    <div class="details-rounds-section">
+      <div class="details-rounds-title">Round-by-Round Scores</div>
+      <div class="details-rounds-grid">
+        <div class="details-rounds-header">${scorecard.fighter1_name}</div>
+        <div class="details-rounds-header">Round</div>
+        <div class="details-rounds-header">${scorecard.fighter2_name}</div>
+        ${roundsHTML}
+      </div>
+    </div>
+    
+    <div class="details-total-section">
+      <div class="details-total-title">Final Score</div>
+      <div class="details-total-scores">
+        <div class="details-total-fighter">
+          <div class="details-total-fighter-name">${scorecard.fighter1_name}</div>
+          <div class="details-total-fighter-score">${fighter1Total}</div>
+        </div>
+        <div class="details-total-vs">VS</div>
+        <div class="details-total-fighter">
+          <div class="details-total-fighter-name">${scorecard.fighter2_name}</div>
+          <div class="details-total-fighter-score">${fighter2Total}</div>
+        </div>
+      </div>
+      <div style="margin-top: 15px; font-size: 0.9rem; color: #666;">
+        ROUND ${actualRounds} OF ${actualRounds}
+      </div>
+    </div>
+  `;
+}
+
+// Show Profile Screen
+function showProfileScreen() {
+  console.log('👤 Showing Profile screen');
+  
+  // Hide all other screens
+  const elements = [
+    'login-overlay', 'main-app', 'home-screen', 'upcoming-fights-screen',
+    'live-events-screen', 'scorecard-screen', 'round-screen', 
+    'final-score-screen', 'share-screen', 'admin-screen', 'my-scorecards-screen',
+    'scorecard-details-screen'
+  ];
+  
+  elements.forEach(id => {
+    const element = document.getElementById(id);
+    if (element) {
+      element.style.display = 'none';
+    }
+  });
+  
+  // Show profile screen
+  const profileScreen = document.getElementById('profile-screen');
+  if (profileScreen) {
+    profileScreen.style.display = 'flex';
+    console.log('✅ Profile screen displayed');
+  } else {
+    console.error('❌ Profile screen not found!');
+  }
+  
+  // Populate profile content
+  populateProfileContent();
+  
+  // Setup back button with a small delay to ensure DOM is ready
+  setTimeout(() => {
+    const backButton = document.getElementById('back-to-home-from-profile');
+    if (backButton) {
+      console.log('✅ Back button found, setting up click handler');
+      
+      // Remove any existing listeners
+      backButton.removeEventListener('click', handleBackToHome);
+      backButton.onclick = null;
+      
+      // Add new listener
+      backButton.addEventListener('click', handleBackToHome);
+      
+      // Test if button is clickable
+      console.log('🔍 Button element:', backButton);
+      console.log('🔍 Button style:', backButton.style);
+      console.log('🔍 Button disabled:', backButton.disabled);
+    } else {
+      console.error('❌ Back button not found!');
+    }
+  }, 100);
+}
+
+// Separate function for back button handler
+function handleBackToHome(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  console.log('🏠 Back to Home clicked from profile');
+  console.log('🏠 Calling showHomeScreen...');
+  showHomeScreen();
+}
+
+// Populate profile content
+function populateProfileContent() {
+  console.log('👤 Populating profile content...');
+  
+  const content = document.getElementById('profile-content');
+  if (!content) {
+    console.error('❌ Profile content element not found!');
+    return;
+  }
+  
+  // Get user data from multiple sources
+  let userEmail = 'Not found';
+  let joinDate = 'Recently';
+  
+  // Try to get from currentUser first
+  if (currentUser && currentUser.email) {
+    userEmail = currentUser.email;
+    console.log('👤 Found email from currentUser:', userEmail);
+  } else {
+    // Try to get from localStorage
+    const savedUser = localStorage.getItem('crowdscore_user');
+    if (savedUser) {
+      try {
+        const userData = JSON.parse(savedUser);
+        userEmail = userData.email || 'Not found';
+        console.log('👤 Found email from localStorage:', userEmail);
+      } catch (e) {
+        console.error('❌ Error parsing saved user:', e);
+      }
+    }
+  }
+  
+  // Get join date
+  if (currentUser && currentUser.createdAt) {
+    joinDate = new Date(currentUser.createdAt).toLocaleDateString();
+  } else {
+    // Use current date as fallback
+    joinDate = new Date().toLocaleDateString();
+  }
+  
+  console.log('👤 Final profile data:', {
+    email: userEmail,
+    joinDate: joinDate
+  });
+  
+  // Simple, direct content
+  content.innerHTML = `
+    <div style="padding: 20px; text-align: center;">
+      <div style="margin-bottom: 20px;">
+        <div style="font-weight: bold; color: #1e3a8a; margin-bottom: 5px;">Email Address</div>
+        <div style="color: #1e40af; font-size: 18px;">${userEmail}</div>
+      </div>
+      <div>
+        <div style="font-weight: bold; color: #1e3a8a; margin-bottom: 5px;">Date Joined</div>
+        <div style="color: #1e40af; font-size: 18px;">${joinDate}</div>
+      </div>
+    </div>
+  `;
+  
+  console.log('✅ Profile content populated with simple layout');
+}
+
+// Handle back to scorecards button
+function handleBackToScorecards(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  console.log('📋 Back to My Scorecards clicked from details');
+  showMyScorecardsScreen();
+}
+
+// Profile action functions (placeholder for future features)
+
+// Handle user sign out
+function handleSignOut() {
+  console.log('🚪 Signing out user...');
+  
+  try {
+    // Clear user data from localStorage
+    localStorage.removeItem('crowdscore_user');
+    localStorage.removeItem('crowdscore_users');
+    
+    // Reset global variables
+    currentUser = null;
+    isLoggedIn = false;
+    
+    // Try Supabase sign out if connected
+    if (supabaseStatus && supabaseStatus.connected) {
+      console.log('🚪 Signing out from Supabase...');
+      window.supabaseIntegration.signOutUser()
+        .then(() => {
+          console.log('✅ Supabase sign out successful');
+        })
+        .catch((error) => {
+          console.warn('⚠️ Supabase sign out failed:', error);
+        })
+        .finally(() => {
+          // Always show login screen regardless of Supabase result
+          showLoginScreen();
+        });
+    } else {
+      // Just show login screen if not using Supabase
+      showLoginScreen();
+    }
+    
+    console.log('✅ User signed out successfully');
+    
+  } catch (error) {
+    console.error('❌ Sign out error:', error);
+    // Still show login screen even if there's an error
+    showLoginScreen();
+  }
+}
+
+// Save scorecard to localStorage (fallback)
+function saveScorecardToLocalStorage(scorecardData) {
+  try {
+    console.log('💾 Saving scorecard to localStorage...');
+    
+    // Get existing scorecards
+    const existingScorecards = JSON.parse(localStorage.getItem('crowdscore_scorecards') || '[]');
+    
+    // Add new scorecard
+    existingScorecards.push(scorecardData);
+    
+    // Save back to localStorage
+    localStorage.setItem('crowdscore_scorecards', JSON.stringify(existingScorecards));
+    
+    console.log('✅ Scorecard saved to localStorage successfully!');
+    showSuccess('Scorecard saved successfully!');
+  } catch (error) {
+    console.error('❌ localStorage save failed:', error);
+    showError('Failed to save scorecard. Please try again.');
   }
 }
 
@@ -1421,7 +2063,7 @@ function handleFightCardClick(fightId) {
   // 4. Set up live scoring if the fight is currently live
 }
 
-function handleLogin() {
+async function handleLogin() {
   const email = document.getElementById('login-email').value;
   const password = document.getElementById('login-password').value;
 
@@ -1430,22 +2072,45 @@ function handleLogin() {
     return;
   }
 
-  // Simple validation (in a real app, this would check against a backend)
-  const savedUsers = JSON.parse(localStorage.getItem('crowdscore_users') || '[]');
-  const user = savedUsers.find(u => u.email === email && u.password === password);
+  try {
+    // Try Supabase first
+    if (supabaseStatus && supabaseStatus.connected) {
+      console.log('🔐 Attempting Supabase login...');
+      const result = await window.supabaseIntegration.signInUser(email, password);
+      
+      if (result.success) {
+        currentUser = result.user;
+        isLoggedIn = true;
+        showHomeScreen();
+        showSuccess('Welcome back, ' + result.user.name + '!');
+        return;
+      } else {
+        showError(result.error || 'Login failed');
+        return;
+      }
+    } else {
+      // Fallback to localStorage
+      console.log('📱 Using localStorage fallback for login');
+      const savedUsers = JSON.parse(localStorage.getItem('crowdscore_users') || '[]');
+      const user = savedUsers.find(u => u.email === email && u.password === password);
 
-  if (user) {
-    currentUser = user;
-    isLoggedIn = true;
-    localStorage.setItem('crowdscore_user', JSON.stringify(user));
-    showHomeScreen();
-    showSuccess('Welcome back, ' + user.name + '!');
-  } else {
-    showError('Invalid email or password');
+      if (user) {
+        currentUser = user;
+        isLoggedIn = true;
+        localStorage.setItem('crowdscore_user', JSON.stringify(user));
+        showHomeScreen();
+        showSuccess('Welcome back, ' + user.name + '!');
+      } else {
+        showError('Invalid email or password');
+      }
+    }
+  } catch (error) {
+    console.error('Login error:', error);
+    showError('Login failed. Please try again.');
   }
 }
 
-function handleSignup() {
+async function handleSignup() {
   const name = document.getElementById('signup-name').value;
   const email = document.getElementById('signup-email').value;
   const password = document.getElementById('signup-password').value;
@@ -1466,31 +2131,54 @@ function handleSignup() {
     return;
   }
 
-  // Check if user already exists
-  const savedUsers = JSON.parse(localStorage.getItem('crowdscore_users') || '[]');
-  if (savedUsers.find(u => u.email === email)) {
-    showError('User with this email already exists');
-    return;
+  try {
+    // Try Supabase first
+    if (supabaseStatus && supabaseStatus.connected) {
+      console.log('🔐 Attempting Supabase signup...');
+      const result = await window.supabaseIntegration.signUpUser(email, password, name);
+      
+      if (result.success) {
+        currentUser = result.user;
+        isLoggedIn = true;
+        showHomeScreen();
+        showSuccess('Account created successfully! Welcome, ' + name + '!');
+        return;
+      } else {
+        showError(result.error || 'Signup failed');
+        return;
+      }
+    } else {
+      // Fallback to localStorage
+      console.log('📱 Using localStorage fallback for signup');
+      const savedUsers = JSON.parse(localStorage.getItem('crowdscore_users') || '[]');
+      if (savedUsers.find(u => u.email === email)) {
+        showError('User with this email already exists');
+        return;
+      }
+
+      // Create new user
+      const newUser = {
+        id: Date.now(),
+        name: name,
+        email: email,
+        password: password,
+        createdAt: new Date().toISOString()
+      };
+
+      savedUsers.push(newUser);
+      localStorage.setItem('crowdscore_users', JSON.stringify(savedUsers));
+
+      currentUser = newUser;
+      isLoggedIn = true;
+      localStorage.setItem('crowdscore_user', JSON.stringify(newUser));
+
+      showHomeScreen();
+      showSuccess('Account created successfully! Welcome, ' + name + '!');
+    }
+  } catch (error) {
+    console.error('Signup error:', error);
+    showError('Signup failed. Please try again.');
   }
-
-  // Create new user
-  const newUser = {
-    id: Date.now(),
-    name: name,
-    email: email,
-    password: password,
-    createdAt: new Date().toISOString()
-  };
-
-  savedUsers.push(newUser);
-  localStorage.setItem('crowdscore_users', JSON.stringify(savedUsers));
-
-  currentUser = newUser;
-  isLoggedIn = true;
-  localStorage.setItem('crowdscore_user', JSON.stringify(newUser));
-
-  showHomeScreen();
-  showSuccess('Account created successfully! Welcome, ' + name + '!');
 }
 
 function showError(message) {
@@ -1851,9 +2539,96 @@ function initializeMainApp() {
     // Show the overlay
     finalCenterOverlay.style.display = 'flex';
 
+    // Save scorecard to Supabase
+    saveScorecardToDatabase();
+
     // Add share button functionality
     const shareButton = document.getElementById('share-scorecard');
-    shareButton.addEventListener('click', shareScorecard);
+    if (shareButton) {
+      shareButton.addEventListener('click', shareScorecard);
+    }
+  }
+
+  // Save scorecard to database
+  async function saveScorecardToDatabase() {
+    try {
+      console.log('💾 Saving scorecard to database...');
+      
+      // Get all score data
+      const blueScores = document.querySelectorAll('.blue-score .score-display');
+      const redScores = document.querySelectorAll('.red-score .score-display');
+      const blueName = document.getElementById('blue-name').value || 'Blue Corner';
+      const redName = document.getElementById('red-name').value || 'Red Corner';
+      
+      // Build scores array
+      const fighter1Scores = [];
+      const fighter2Scores = [];
+      for (let i = 0; i < 12; i++) {
+        fighter1Scores.push(parseInt(blueScores[i]?.textContent) || 0);
+        fighter2Scores.push(parseInt(redScores[i]?.textContent) || 0);
+      }
+      
+      // Calculate totals
+      const blueTotal = fighter1Scores.reduce((sum, score) => sum + score, 0);
+      const redTotal = fighter2Scores.reduce((sum, score) => sum + score, 0);
+      
+      // Build scorecard data to match database schema
+      const scorecardData = {
+        fighter1_name: blueName,
+        fighter2_name: redName,
+        fighter1_scores: fighter1Scores,
+        fighter2_scores: fighter2Scores,
+        fight_date: new Date().toISOString().split('T')[0], // YYYY-MM-DD format
+        fight_origin: scorecardOrigin // 'manual' or 'live-event'
+      };
+      
+      console.log('💾 Scorecard data:', scorecardData);
+      
+      // Try Supabase first
+      if (supabaseStatus && supabaseStatus.connected) {
+        console.log('💾 Attempting Supabase save...');
+        // Add user_id to the scorecard data
+        const { data: { user } } = await window.supabaseIntegration.supabaseClient.auth.getUser();
+        if (user) {
+          scorecardData.user_id = user.id;
+          console.log('💾 Added user_id:', user.id);
+        } else {
+          console.error('💾 No authenticated user found');
+        }
+        const result = await window.supabaseIntegration.saveScorecard(scorecardData);
+        
+        if (result.success) {
+          console.log('✅ Scorecard saved to Supabase successfully!');
+          showSuccess('Scorecard saved successfully!');
+        } else {
+          console.error('❌ Supabase save failed:', result.error);
+          // Fallback to localStorage
+          saveScorecardToLocalStorage(scorecardData);
+        }
+      } else {
+        console.log('📱 Supabase not connected, using localStorage fallback');
+        saveScorecardToLocalStorage(scorecardData);
+      }
+      
+    } catch (error) {
+      console.error('💾 Error saving scorecard:', error);
+      showError('Failed to save scorecard. Please try again.');
+    }
+  }
+  
+  // Fallback localStorage save
+  function saveScorecardToLocalStorage(scorecardData) {
+    try {
+      const savedScorecards = JSON.parse(localStorage.getItem('crowdscore_scorecards') || '[]');
+      scorecardData.id = Date.now();
+      savedScorecards.push(scorecardData);
+      localStorage.setItem('crowdscore_scorecards', JSON.stringify(savedScorecards));
+      console.log('📱 Scorecard saved to localStorage');
+      showSuccess('Scorecard saved locally!');
+    } catch (error) {
+      console.error('📱 localStorage save failed:', error);
+      showError('Failed to save scorecard.');
+    }
   }
 
   // Share scorecard functionality

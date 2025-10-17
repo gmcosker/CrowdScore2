@@ -1,6 +1,6 @@
-// VERSION 65 - LIVE EVENTS DEBUGGING - Fire Emojis Added
-// This version adds extensive debugging for Live Events button
-// Created: October 12, 2025 - FIRE EMOJI DEBUGGING
+// VERSION 67 - SUPABASE INTEGRATION - Gradual Migration
+// This version adds Supabase with localStorage fallback
+// Created: October 14, 2025 - SUPABASE INTEGRATION
 
 // Script loaded successfully
 
@@ -8,14 +8,40 @@
 let currentUser = null;
 let isLoggedIn = false;
 
+// Supabase integration status
+let supabaseStatus = null;
+
 // Scorecard origin tracking
 let scorecardOrigin = 'manual'; // 'manual' or 'live-event'
 let preFilledFighter1Name = '';
 let preFilledFighter2Name = '';
 
+// Initialize Supabase integration
+function initializeSupabase() {
+  try {
+    // Check if Supabase integration is available
+    if (typeof getConnectionStatus === 'function') {
+      supabaseStatus = getConnectionStatus();
+      console.log('🔗 Supabase Status:', supabaseStatus);
+      
+      if (supabaseStatus.connected) {
+        console.log('✅ Using Supabase for data storage');
+      } else {
+        console.log('📱 Using localStorage fallback');
+      }
+    } else {
+      console.log('📱 Supabase integration not loaded, using localStorage');
+      supabaseStatus = { connected: false, method: 'localStorage' };
+    }
+  } catch (error) {
+    console.warn('⚠️ Supabase initialization failed:', error);
+    supabaseStatus = { connected: false, method: 'localStorage' };
+  }
+}
+
 function checkLoginStatus() {
-  // Clear localStorage for testing - remove this line in production
-  localStorage.removeItem('crowdscore_user');
+  // Initialize Supabase first
+  initializeSupabase();
   
   // Check if user is already logged in
   const savedUser = localStorage.getItem('crowdscore_user');
