@@ -1,0 +1,312 @@
+document.addEventListener('DOMContentLoaded', function() {
+  const blueName = document.getElementById('blue-name');
+  const redName = document.getElementById('red-name');
+  const blueWonButton = document.querySelector('.blue-won');
+  const redWonButton = document.querySelector('.red-won');
+  const blueScoresContainer = document.querySelector('.blue-scores');
+  const redScoresContainer = document.querySelector('.red-scores');
+  const roundNumbersContainer = document.querySelector('.round-numbers');
+  const blueRunningTotal = document.querySelector('.boxer-info.blue .running-total-value');
+  const redRunningTotal = document.querySelector('.boxer-info.red .running-total-value');
+  const finalCenterOverlay = document.querySelector('.final-center-overlay');
+  const blueFinalName = document.querySelectorAll('.blue-final-name');
+  const redFinalName = document.querySelectorAll('.red-final-name');
+  const blueFinal = document.querySelectorAll('.blue-final');
+  const redFinal = document.querySelectorAll('.red-final');
+  
+  // Theme functions
+  const toggleThemeButton = document.getElementById('toggle-theme');
+  const resetThemeButton = document.getElementById('reset-theme');
+  const newFightButton = document.getElementById('new-fight');
+  
+  // Theme definitions
+  const themes = {
+    default: {
+      primaryColor: '#f5f5f5',
+      phoneBackground: 'white',
+      boxShadowColor: 'rgba(0, 0, 0, 0.2)',
+      blueBoxColor: '#e6f0ff',
+      redBoxColor: '#ffe6e6',
+      blueButtonColor: '#0066cc',
+      redButtonColor: '#cc0000',
+      borderColor: '#ddd',
+      roundBackgroundColor: '#f0f0f0',
+      overlayBackground: 'rgba(255, 255, 255, 0.9)',
+      textColor: '#333'
+    },
+    canelovscrawford: {
+      primaryColor: '#000000',
+      phoneBackground: 'rgba(20, 20, 20, 0.9)',
+      boxShadowColor: 'rgba(255, 0, 0, 0.3)',
+      blueBoxColor: 'rgba(30, 30, 150, 0.8)',
+      redBoxColor: 'rgba(150, 30, 30, 0.8)',
+      blueButtonColor: '#0033cc',
+      redButtonColor: '#cc0000',
+      borderColor: '#555',
+      roundBackgroundColor: '#333',
+      overlayBackground: 'rgba(0, 0, 0, 0.9)',
+      textColor: '#fff'
+    }
+  };
+  
+  // Current active theme
+  let activeTheme = 'default';
+  
+  // Theme toggle event listener
+  toggleThemeButton.addEventListener('click', function() {
+    const newTheme = (activeTheme === 'default') ? 'canelovscrawford' : 'default';
+    applyTheme(newTheme);
+  });
+  
+  // Reset theme event listener
+  resetThemeButton.addEventListener('click', function() {
+    applyTheme('default');
+  });
+  
+  // Apply theme function
+  function applyTheme(themeName) {
+    if (themes[themeName]) {
+      activeTheme = themeName;
+      const theme = themes[themeName];
+      const root = document.documentElement;
+      
+      // Apply all theme variables
+      Object.entries(theme).forEach(([property, value]) => {
+        root.style.setProperty(`--${property}`, value);
+      });
+    }
+  }
+
+  // Create score cells for all rounds
+  createScoreCells();
+
+  // Initialize event listeners
+  initializeEventListeners();
+
+  // Create score cells for all rounds
+  function createScoreCells() {
+    // Clear existing content
+    blueScoresContainer.innerHTML = '';
+    redScoresContainer.innerHTML = '';
+    roundNumbersContainer.innerHTML = '';
+
+    // Create cells for all 12 rounds
+    for (let i = 1; i <= 12; i++) {
+      // Create round number
+      const roundNumber = document.createElement('div');
+      roundNumber.className = 'round-number';
+      roundNumber.textContent = i;
+      roundNumbersContainer.appendChild(roundNumber);
+
+      // Create blue score cell
+      const blueScoreCell = document.createElement('div');
+      blueScoreCell.className = 'score-cell blue-score';
+      blueScoreCell.dataset.round = i;
+      blueScoresContainer.appendChild(blueScoreCell);
+
+      // Create red score cell
+      const redScoreCell = document.createElement('div');
+      redScoreCell.className = 'score-cell red-score';
+      redScoreCell.dataset.round = i;
+      redScoresContainer.appendChild(redScoreCell);
+    }
+  }
+
+  // Initialize event listeners
+  function initializeEventListeners() {
+    // Blue won button click
+    blueWonButton.addEventListener('click', function() {
+      handleWinnerButtonClick('blue');
+    });
+
+    // Red won button click
+    redWonButton.addEventListener('click', function() {
+      handleWinnerButtonClick('red');
+    });
+
+    // Boxer name input event
+    blueName.addEventListener('input', function() {
+      updateBoxerName('blue');
+    });
+
+    redName.addEventListener('input', function() {
+      updateBoxerName('red');
+    });
+
+    // Initialize name displays
+    updateBoxerName('blue');
+    updateBoxerName('red');
+
+    // Add click handlers to score cells
+    addScoreCellClickHandlers();
+  }
+
+  // Handle winner button click
+  function handleWinnerButtonClick(winner) {
+    const currentRound = getCurrentRound();
+    if (currentRound <= 12) {
+      const blueScoreCell = document.querySelector(`.blue-score[data-round="${currentRound}"]`);
+      const redScoreCell = document.querySelector(`.red-score[data-round="${currentRound}"]`);
+
+      if (winner === 'blue') {
+        blueScoreCell.textContent = '10';
+        redScoreCell.textContent = '9';
+      } else {
+        blueScoreCell.textContent = '9';
+        redScoreCell.textContent = '10';
+      }
+
+      updateRunningTotals();
+
+      // Check if all rounds are scored
+      if (currentRound === 12) {
+        showFinalScores();
+      }
+    }
+  }
+
+  // Update boxer name display
+  function updateBoxerName(color) {
+    const nameInput = document.getElementById(`${color}-name`);
+    const nameElements = document.querySelectorAll(`.${color}-final-name`);
+    nameElements.forEach(element => {
+      element.textContent = nameInput.value || (color === 'blue' ? 'Blue' : 'Red');
+    });
+  }
+
+  // Get current round
+  function getCurrentRound() {
+    const blueScores = document.querySelectorAll('.blue-score');
+    for (let i = 0; i < blueScores.length; i++) {
+      if (blueScores[i].textContent.trim() === '') {
+        return i + 1;
+      }
+    }
+    return 12; // Default to last round if all are filled
+  }
+
+  // Update running totals
+  function updateRunningTotals() {
+    let blueTotal = 0;
+    let redTotal = 0;
+    const blueScores = document.querySelectorAll('.blue-score');
+    const redScores = document.querySelectorAll('.red-score');
+
+    blueScores.forEach(cell => {
+      if (cell.textContent.trim() !== '') {
+        blueTotal += parseInt(cell.textContent);
+      }
+    });
+
+    redScores.forEach(cell => {
+      if (cell.textContent.trim() !== '') {
+        redTotal += parseInt(cell.textContent);
+      }
+    });
+
+    blueRunningTotal.textContent = blueTotal;
+    redRunningTotal.textContent = redTotal;
+
+    // Update final scores too (only in overlay now)
+    blueFinal.forEach(element => {
+      element.textContent = blueTotal;
+    });
+
+    redFinal.forEach(element => {
+      element.textContent = redTotal;
+    });
+  }
+
+  // Show final scores overlay
+  function showFinalScores() {
+    finalCenterOverlay.style.display = 'flex';
+  }
+
+  // Add click handlers to score cells for dropdown
+  function addScoreCellClickHandlers() {
+    const scoreCells = document.querySelectorAll('.score-cell');
+    scoreCells.forEach(cell => {
+      cell.addEventListener('click', function(e) {
+        // Only show dropdown if the cell has a score
+        if (this.textContent.trim() !== '') {
+          // Close any open dropdowns first
+          closeAllDropdowns();
+
+          // Create and show dropdown for this cell
+          createScoreDropdown(this);
+
+          // Prevent this click from immediately closing the dropdown
+          e.stopPropagation();
+        }
+      });
+    });
+
+    // Close dropdowns when clicking elsewhere
+    document.addEventListener('click', closeAllDropdowns);
+  }
+
+  // Create the score dropdown
+  function createScoreDropdown(cell) {
+    // Remove any existing dropdowns
+    closeAllDropdowns();
+
+    // Create dropdown container
+    const dropdown = document.createElement('div');
+    dropdown.className = 'score-dropdown';
+
+    // Create options (10 down to 7)
+    for (let score = 10; score >= 7; score--) {
+      const option = document.createElement('div');
+      option.className = 'score-dropdown-option';
+      option.textContent = score;
+
+      // Add click handler for this option
+      option.addEventListener('click', function(e) {
+        // Set the cell's score to the selected value
+        cell.textContent = score.toString();
+
+        // Add visual indicator if score is not the standard 10/9
+        const isBlueCell = cell.classList.contains('blue-score');
+        const round = cell.dataset.round;
+        const oppositeCell = isBlueCell ? 
+          document.querySelector(`.red-score[data-round="${round}"]`) : 
+          document.querySelector(`.blue-score[data-round="${round}"]`);
+
+        const standardScore = (oppositeCell.textContent === '10') ? '9' : '10';
+
+        if (score.toString() !== standardScore) {
+          cell.classList.add('score-modified');
+        } else {
+          cell.classList.remove('score-modified');
+        }
+
+        // Update running totals
+        updateRunningTotals();
+
+        // Close the dropdown
+        closeAllDropdowns();
+
+        // Prevent event bubbling
+        e.stopPropagation();
+      });
+
+      dropdown.appendChild(option);
+    }
+
+    // Position and show the dropdown
+    document.body.appendChild(dropdown);
+
+    const cellRect = cell.getBoundingClientRect();
+    dropdown.style.position = 'absolute';
+    dropdown.style.left = cellRect.left + (cellRect.width / 2) + 'px';
+    dropdown.style.top = cellRect.bottom + 5 + 'px';
+  }
+
+  // Close all open dropdowns
+  function closeAllDropdowns() {
+    const dropdowns = document.querySelectorAll('.score-dropdown');
+    dropdowns.forEach(dropdown => {
+      dropdown.remove();
+    });
+  }
+});

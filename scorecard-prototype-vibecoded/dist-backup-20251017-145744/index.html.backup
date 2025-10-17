@@ -83,15 +83,6 @@
       <p class="home-subtitle">Let the crowd decide</p>
     </div>
     
-    <!-- Hamburger Menu Button -->
-    <div class="menu-button-container">
-      <button class="menu-button" id="menu-button">☰</button>
-      <div class="menu-dropdown" id="menu-dropdown" style="display: none;">
-        <div class="menu-item" id="my-scorecards-menu">📋 My Scorecards</div>
-        <div class="menu-item" id="profile-menu">👤 Profile</div>
-        <div class="menu-item" id="signout-menu">🚪 Sign Out</div>
-      </div>
-    </div>    
     <div class="tiles-container">
       <div class="tile main-tile" id="score-my-own-fight">
         <div class="tile-icon">🥊</div>
@@ -146,49 +137,8 @@
   </div>
 </div>
 
-<!-- My Scorecards Screen (initially hidden) -->
-<div class="my-scorecards-screen" id="my-scorecards-screen" style="display: none;">
-  <div class="my-scorecards-container">
-    <div class="my-scorecards-header">
-      <button class="back-to-home-button" id="back-to-home-from-scorecards">← Back to Home</button>
-      <h1 class="my-scorecards-title">My Scorecards</h1>
-      <p class="my-scorecards-subtitle">Your scoring history</p>
-    </div>
-    
-    <div class="scorecards-list" id="scorecards-list">
-      <!-- User scorecards will be dynamically inserted here -->
-    </div>
-  </div>
-</div>
-
-<!-- Scorecard Details Screen (initially hidden) -->
-<div class="scorecard-details-screen" id="scorecard-details-screen" style="display: none;">
-  <div class="scorecard-details-container">
-    <div class="scorecard-details-header">
-      <button class="back-to-scorecards-button" id="back-to-scorecards">← Back to My Scorecards</button>
-      <h1 class="scorecard-details-title">Scorecard Details</h1>
-    </div>
-    
-    <div class="scorecard-details-content" id="scorecard-details-content">
-      <!-- Scorecard details will be dynamically inserted here -->
-    </div>
-  </div>
-</div><!-- Main App (initially hidden) -->
-
-<!-- Profile Screen (initially hidden) -->
-<div class="profile-screen" id="profile-screen" style="display: none;">
-  <div class="profile-container">
-    <div class="profile-header">
-      <button class="back-to-home-button" id="back-to-home-from-profile" onclick="handleBackToHome(event)">← Back to Home</button>
-      <h1 class="profile-title">Profile</h1>
-      <p class="profile-subtitle">Manage your account</p>
-    </div>
-    
-    <div class="profile-content" id="profile-content">
-      <!-- Profile content will be dynamically inserted here -->
-    </div>
-  </div>
-</div><div class="main-app" id="main-app" style="display: none;">
+<!-- Main App (initially hidden) -->
+<div class="main-app" id="main-app" style="display: none;">
   <div class="app-header">
     <button class="back-to-home-button" id="back-to-home">← Back to Home</button>
   </div>
