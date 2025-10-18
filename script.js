@@ -790,7 +790,7 @@ function handleBackToHome(e) {
 }
 
 // Populate profile content
-function populateProfileContent() {
+async function populateProfileContent() {
   console.log('👤 Populating profile content...');
   
   const content = document.getElementById('profile-content');
@@ -803,9 +803,34 @@ function populateProfileContent() {
   let userEmail = 'Not found';
   let joinDate = 'Recently';
   
-  // Try to get from currentUser first
-  if (currentUser && currentUser.email) {
+  // Try to get from Supabase first if connected
+  if (supabaseStatus && supabaseStatus.connected && currentUser) {
+    try {
+      console.log('👤 Fetching profile from Supabase...');
+      const { data: profile, error } = await window.supabaseIntegration.supabaseClient
+        .from('profiles')
+        .select('email, created_at')
+        .eq('id', currentUser.id)
+        .single();
+      
+      if (profile && !error) {
+        userEmail = profile.email || currentUser.email || 'Not found';
+        joinDate = profile.created_at ? new Date(profile.created_at).toLocaleDateString() : 'Recently';
+        console.log('👤 Found profile from Supabase:', userEmail, joinDate);
+      } else {
+        console.warn('⚠️ Profile not found in Supabase, using currentUser data');
+        userEmail = currentUser.email || 'Not found';
+        joinDate = currentUser.created_at ? new Date(currentUser.created_at).toLocaleDateString() : 'Recently';
+      }
+    } catch (error) {
+      console.warn('⚠️ Error fetching profile from Supabase:', error);
+      userEmail = currentUser.email || 'Not found';
+      joinDate = currentUser.created_at ? new Date(currentUser.created_at).toLocaleDateString() : 'Recently';
+    }
+  } else if (currentUser && currentUser.email) {
+    // Fallback to currentUser
     userEmail = currentUser.email;
+    joinDate = currentUser.created_at ? new Date(currentUser.created_at).toLocaleDateString() : 'Recently';
     console.log('👤 Found email from currentUser:', userEmail);
   } else {
     // Try to get from localStorage
@@ -814,19 +839,12 @@ function populateProfileContent() {
       try {
         const userData = JSON.parse(savedUser);
         userEmail = userData.email || 'Not found';
-        console.log('👤 Found email from localStorage:', userEmail);
+        joinDate = userData.created_at ? new Date(userData.created_at).toLocaleDateString() : 'Recently';
+        console.log('👤 Found data from localStorage:', userEmail, joinDate);
       } catch (e) {
         console.error('❌ Error parsing saved user:', e);
       }
     }
-  }
-  
-  // Get join date
-  if (currentUser && currentUser.createdAt) {
-    joinDate = new Date(currentUser.createdAt).toLocaleDateString();
-  } else {
-    // Use current date as fallback
-    joinDate = new Date().toLocaleDateString();
   }
   
   console.log('👤 Final profile data:', {
