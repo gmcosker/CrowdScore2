@@ -994,10 +994,6 @@ const CACHE_KEY = 'crowdscore_espn_data';
 
 async function fetchESPNBoxingSchedule() {
   try {
-    // FORCE CLEAR CACHE FOR DEBUGGING
-    console.log('🔧 DEBUGGING: Force clearing cache to get fresh data');
-    localStorage.removeItem(CACHE_KEY);
-    
     // Check cache first
     const cachedData = getCachedData();
     if (cachedData) {
@@ -1670,7 +1666,7 @@ function loadUpcomingFights() {
   const fightsList = document.getElementById('fights-list');
   fightsList.innerHTML = '<div class="loading-message">Loading upcoming fights...</div>';
   
-  // Try to fetch real ESPN data first, fall back to mock data
+  // Try to fetch real ESPN data only
   fetchESPNBoxingSchedule().then(espnData => {
     console.log('🔧 DEBUGGING: fetchESPNBoxingSchedule completed, data:', espnData);
     if (espnData && espnData.length > 0) {
@@ -1680,18 +1676,12 @@ function loadUpcomingFights() {
       const { upcomingFights } = filterFightsByDate(espnData);
       displayFights(upcomingFights, 'upcoming');
     } else {
-      console.log('ESPN data unavailable, using mock data');
-      const mockData = getEnhancedMockData();
-      console.log('🔧 DEBUGGING: Mock data:', mockData);
-      const { upcomingFights } = filterFightsByDate(mockData);
-      displayFights(upcomingFights, 'upcoming');
+      console.log('ESPN data unavailable, showing no events message');
+      displayFights([], 'upcoming');
     }
   }).catch(error => {
     console.error('Error loading fights:', error);
-    const mockData = getEnhancedMockData();
-    console.log('🔧 DEBUGGING: Error fallback mock data:', mockData);
-    const { upcomingFights } = filterFightsByDate(mockData);
-    displayFights(upcomingFights, 'upcoming');
+    displayFights([], 'upcoming');
   });
 }
 
@@ -1702,7 +1692,7 @@ function loadLiveEvents() {
   const liveFightsList = document.getElementById('live-fights-list');
   liveFightsList.innerHTML = '<div class="loading-message">Loading live events...</div>';
   
-  // Try to fetch real ESPN data first, fall back to mock data
+  // Try to fetch real ESPN data only
   fetchESPNBoxingSchedule().then(espnData => {
     console.log('🔧 DEBUGGING: fetchESPNBoxingSchedule completed for live events, data:', espnData);
     if (espnData && espnData.length > 0) {
@@ -1712,18 +1702,12 @@ function loadLiveEvents() {
       const { todayFights } = filterFightsByDate(espnData);
       displayFights(todayFights, 'live');
     } else {
-      console.log('ESPN data unavailable, using mock data');
-      const mockData = getEnhancedMockData();
-      console.log('🔧 DEBUGGING: Mock data:', mockData);
-      const { todayFights } = filterFightsByDate(mockData);
-      displayFights(todayFights, 'live');
+      console.log('ESPN data unavailable, showing no events message');
+      displayFights([], 'live');
     }
   }).catch(error => {
     console.error('Error loading live events:', error);
-    const mockData = getEnhancedMockData();
-    console.log('🔧 DEBUGGING: Error fallback mock data:', mockData);
-    const { todayFights } = filterFightsByDate(mockData);
-    displayFights(todayFights, 'live');
+    displayFights([], 'live');
   });
 }
 
