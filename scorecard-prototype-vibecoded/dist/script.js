@@ -1611,7 +1611,7 @@ function getCurrentDate() {
 // Helper function to parse fight date consistently
 function parseFightDate(fight) {
   // Extract date from various possible formats
-  let dateStr = fight.event?.date || fight.date || fight.month + ' ' + fight.day + ', 2025';
+  let dateStr = fight.event?.date || fight.date || fight.month + ' ' + fight.day + ', ' + new Date().getFullYear();
   
   // If it's already in YYYY-MM-DD format, return it
   if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
