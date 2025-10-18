@@ -275,7 +275,29 @@ window.supabaseIntegration = {
                 }
                 
                 if (data.user) {
-                console.log('✅ Supabase signup successful');
+                    console.log('✅ Supabase signup successful');
+                    
+                    // Create user profile
+                    try {
+                        const { error: profileError } = await supabaseClient
+                            .from('profiles')
+                            .insert({
+                                id: data.user.id,
+                                email: email,
+                                name: name,
+                                created_at: new Date().toISOString(),
+                                is_admin: false
+                            });
+                        
+                        if (profileError) {
+                            console.warn('⚠️ Profile creation failed:', profileError);
+                        } else {
+                            console.log('✅ User profile created successfully');
+                        }
+                    } catch (profileError) {
+                        console.warn('⚠️ Profile creation error:', profileError);
+                    }
+                    
                     return { 
                         success: true, 
                         user: {
