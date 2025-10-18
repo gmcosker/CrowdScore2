@@ -21,14 +21,14 @@ let connectionMethod = 'localStorage';
 
 // Try to connect to Supabase
 if (createClient) {
-    try {
+try {
         supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        supabaseConnected = true;
+    supabaseConnected = true;
         connectionMethod = 'supabase';
-        console.log('✅ Supabase connected successfully');
-    } catch (error) {
+    console.log('✅ Supabase connected successfully');
+} catch (error) {
         console.warn('⚠️ Supabase connection failed:', error);
-        supabaseConnected = false;
+    supabaseConnected = false;
         connectionMethod = 'localStorage';
     }
 } else {
@@ -275,7 +275,7 @@ window.supabaseIntegration = {
                 }
                 
                 if (data.user) {
-                    console.log('✅ Supabase signup successful');
+                console.log('✅ Supabase signup successful');
                     return { 
                         success: true, 
                         user: {
@@ -311,7 +311,7 @@ window.supabaseIntegration = {
                 }
                 
                 if (data.user) {
-                    console.log('✅ Supabase signin successful');
+                console.log('✅ Supabase signin successful');
                     return { 
                         success: true, 
                         user: {

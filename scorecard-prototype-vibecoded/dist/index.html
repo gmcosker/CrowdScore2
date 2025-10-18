@@ -188,7 +188,28 @@
       <!-- Profile content will be dynamically inserted here -->
     </div>
   </div>
-</div><div class="main-app" id="main-app" style="display: none;">
+</div>
+
+<!-- Round Selection Screen (initially hidden) -->
+<div class="round-selection-screen" id="round-selection-screen" style="display: none;">
+  <div class="round-selection-container">
+    <div class="round-selection-header">
+      <button class="back-to-home-button" id="back-to-home-from-rounds">← Back to Home</button>
+      <h1 class="round-selection-title">Select Rounds</h1>
+      <p class="round-selection-subtitle">How many rounds is this fight?</p>
+    </div>
+    
+    <div class="rounds-options" id="rounds-options">
+      <div class="round-option" data-rounds="4">4 Rounds</div>
+      <div class="round-option" data-rounds="6">6 Rounds</div>
+      <div class="round-option" data-rounds="8">8 Rounds</div>
+      <div class="round-option" data-rounds="10">10 Rounds</div>
+      <div class="round-option" data-rounds="12">12 Rounds</div>
+    </div>
+  </div>
+</div>
+
+<div class="main-app" id="main-app" style="display: none;">
   <div class="app-header">
     <button class="back-to-home-button" id="back-to-home">← Back to Home</button>
   </div>

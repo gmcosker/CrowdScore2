@@ -21,6 +21,7 @@ let supabaseStatus = null;
 let scorecardOrigin = 'manual'; // 'manual' or 'live-event'
 let preFilledFighter1Name = '';
 let preFilledFighter2Name = '';
+let currentFightRounds = 12; // Default to 12 rounds, will be updated from fight data
 
 // Initialize Supabase integration
 function initializeSupabase() {
@@ -64,7 +65,8 @@ function showLoginScreen() {
   const elements = [
     'login-overlay', 'main-app', 'home-screen', 'upcoming-fights-screen',
     'live-events-screen', 'scorecard-screen', 'my-scorecards-screen',
-    'round-screen', 'final-score-screen', 'share-screen', 'admin-screen'
+    'round-screen', 'final-score-screen', 'share-screen', 'admin-screen',
+    'round-selection-screen', 'scorecard-details-screen', 'profile-screen'
   ];
   
   elements.forEach(id => {
@@ -134,18 +136,29 @@ function showHomeScreen() {
   console.log('🏠 showHomeScreen() called');
   console.log('🏠 Hiding all screens...');
   
-  document.getElementById('login-overlay').style.display = 'none';
-  document.getElementById('main-app').style.display = 'none';
-  document.getElementById('upcoming-fights-screen').style.display = 'none';
-  document.getElementById('live-events-screen').style.display = 'none';
-  document.getElementById('my-scorecards-screen').style.display = 'none';
-  document.getElementById('scorecard-details-screen').style.display = 'none';
-  document.getElementById('profile-screen').style.display = 'none';
+  // Hide all screens with null checks
+  const elements = [
+    'login-overlay', 'main-app', 'upcoming-fights-screen', 
+    'live-events-screen', 'my-scorecards-screen', 
+    'scorecard-details-screen', 'profile-screen', 'round-selection-screen'
+  ];
+  
+  elements.forEach(id => {
+    const element = document.getElementById(id);
+    if (element) {
+      element.style.display = 'none';
+    } else {
+      console.warn(`⚠️ Element not found: ${id}`);
+    }
+  });
   
   console.log('🏠 Showing home screen...');
   const homeScreen = document.getElementById('home-screen');
   if (homeScreen) {
     homeScreen.style.display = 'flex';
+    homeScreen.style.visibility = 'visible';
+    homeScreen.style.opacity = '1';
+    homeScreen.style.zIndex = '1000'; // Reset z-index
     console.log('✅ Home screen displayed');
   } else {
     console.error('❌ Home screen not found!');
@@ -155,6 +168,79 @@ function showHomeScreen() {
   console.log('🏠 Setting up home screen listeners...');
   setupHomeScreenListeners();
   console.log('🏠 Home screen setup complete');
+}
+
+function showRoundSelectionScreen() {
+  console.log('🥊 showRoundSelectionScreen() called');
+  console.log('🥊 Hiding all screens...');
+  
+  // Hide all screens with null checks
+  const elements = [
+    'login-overlay', 'main-app', 'home-screen', 'upcoming-fights-screen', 
+    'live-events-screen', 'my-scorecards-screen', 
+    'scorecard-details-screen', 'profile-screen', 'round-selection-screen'
+  ];
+  
+  elements.forEach(id => {
+    const element = document.getElementById(id);
+    if (element) {
+      element.style.display = 'none';
+    } else {
+      console.warn(`⚠️ Element not found: ${id}`);
+    }
+  });
+  
+  console.log('🥊 Showing round selection screen...');
+  const roundSelectionScreen = document.getElementById('round-selection-screen');
+  if (roundSelectionScreen) {
+    roundSelectionScreen.style.display = 'flex';
+    roundSelectionScreen.style.visibility = 'visible';
+    roundSelectionScreen.style.opacity = '1';
+    roundSelectionScreen.style.zIndex = '1000';
+    console.log('✅ Round selection screen displayed');
+  } else {
+    console.error('❌ Round selection screen not found!');
+  }
+  
+  // Setup event listeners for round selection
+  setupRoundSelectionListeners();
+  console.log('🥊 Round selection screen setup complete');
+}
+
+function setupRoundSelectionListeners() {
+  // Back to home button
+  const backButton = document.getElementById('back-to-home-from-rounds');
+  if (backButton) {
+    backButton.removeEventListener('click', showHomeScreen);
+    backButton.addEventListener('click', showHomeScreen);
+    console.log('✅ Back to home button listener attached');
+  } else {
+    console.warn('⚠️ Back to home button not found');
+  }
+  
+  // Round option buttons
+  const roundOptions = document.querySelectorAll('.round-option');
+  roundOptions.forEach(option => {
+    option.removeEventListener('click', handleRoundSelection);
+    option.addEventListener('click', handleRoundSelection);
+  });
+  console.log(`✅ ${roundOptions.length} round option listeners attached`);
+}
+
+function handleRoundSelection(event) {
+  const selectedRounds = parseInt(event.target.getAttribute('data-rounds'));
+  console.log('🥊 Round selected:', selectedRounds);
+  
+  // Set the selected rounds
+  currentFightRounds = selectedRounds;
+  
+  // Set origin to manual (not from a live event)
+  scorecardOrigin = 'manual';
+  preFilledFighter1Name = '';
+  preFilledFighter2Name = '';
+  
+  // Launch the scorecard with the selected rounds
+  launchScorecardWithFighters('', '', selectedRounds);
 }
 
 function setupAuthListeners() {
@@ -841,12 +927,8 @@ function saveScorecardToLocalStorage(scorecardData) {
 function handleScoreMyOwnFight() {
   console.log('Score My Own Fight clicked!'); // Debug log
   
-  // Set origin to manual (not from a live event)
-  scorecardOrigin = 'manual';
-  preFilledFighter1Name = '';
-  preFilledFighter2Name = '';
-  
-  showMainApp();
+  // Show the round selection screen instead of going directly to main app
+  showRoundSelectionScreen();
 }
 
 function handleUpcomingFights() {
@@ -1790,7 +1872,7 @@ function createSimpleFightCard(fight, isLiveEvent = false) {
   
   // Add "Score This Fight" button only for live events
   const scoreButtonHTML = isLiveEvent ? `
-    <button class="score-fight-button" data-fighter1="${fight.fighter1}" data-fighter2="${fight.fighter2}">
+    <button class="score-fight-button" data-fighter1="${fight.fighter1}" data-fighter2="${fight.fighter2}" data-rounds="${fight.rounds || 12}">
       Score This Fight
     </button>
   ` : '';
@@ -1957,6 +2039,12 @@ function setupFightCardListeners() {
   
   fightCards.forEach(card => {
     card.addEventListener('click', function(e) {
+      // Don't interfere with button clicks
+      if (e.target.classList.contains('score-fight-button')) {
+        console.log('🔧 DEBUGGING: Button click detected, letting it handle the event');
+        return;
+      }
+      
       e.stopPropagation(); // Prevent event bubbling
       
       const fightId = this.dataset.fightId;
@@ -2010,44 +2098,190 @@ function setupScoreFightButtons() {
   const scoreButtons = document.querySelectorAll('.score-fight-button');
   console.log('🥊 Setting up Score Fight buttons:', scoreButtons.length);
   
-  scoreButtons.forEach(button => {
-    button.addEventListener('click', function(e) {
-      e.stopPropagation(); // Prevent card collapse
-      
-      const fighter1 = this.dataset.fighter1;
-      const fighter2 = this.dataset.fighter2;
-      
-      console.log('🥊 Score This Fight clicked:', fighter1, 'vs', fighter2);
-      console.log('🥊 About to launch scorecard...');
-      
-      // Set origin and store fighter names
-      scorecardOrigin = 'live-event';
-      preFilledFighter1Name = fighter1;
-      preFilledFighter2Name = fighter2;
-      
-      // Navigate to scorecard and pre-fill names
-      launchScorecardWithFighters(fighter1, fighter2);
-      
-      console.log('🥊 Scorecard launch completed');
-    });
+  scoreButtons.forEach((button, index) => {
+    console.log(`🥊 Setting up button ${index}:`, button.dataset.fighter1, 'vs', button.dataset.fighter2);
+    
+    // Remove any existing listeners first
+    button.removeEventListener('click', handleScoreFightClick);
+    
+    // Add new listener
+    button.addEventListener('click', handleScoreFightClick);
   });
 }
 
-function launchScorecardWithFighters(fighter1, fighter2) {
-  console.log('🥊 Launching scorecard with:', fighter1, 'vs', fighter2);
+function handleScoreFightClick(e) {
+  console.log('🥊🔥 BUTTON CLICK DETECTED! 🔥🥊');
+  e.preventDefault();
+      e.stopPropagation(); // Prevent card collapse
+  e.stopImmediatePropagation(); // Prevent other event listeners on the same element
+      
+      const fighter1 = this.dataset.fighter1;
+      const fighter2 = this.dataset.fighter2;
+  const rounds = parseInt(this.dataset.rounds) || 12; // Get rounds from data attribute
+      
+  console.log('🥊 Score This Fight clicked:', fighter1, 'vs', fighter2, `(${rounds} rounds)`);
+  console.log('🥊 Button dataset:', this.dataset);
+  console.log('🥊 Parsed rounds:', rounds);
+      console.log('🥊 About to launch scorecard...');
+      
+  // Set origin and store fighter names and rounds
+      scorecardOrigin = 'live-event';
+      preFilledFighter1Name = fighter1;
+      preFilledFighter2Name = fighter2;
+  currentFightRounds = rounds;
   
-  // Show the main app (scorecard)
-  document.getElementById('login-overlay').style.display = 'none';
-  document.getElementById('home-screen').style.display = 'none';
-  document.getElementById('upcoming-fights-screen').style.display = 'none';
-  document.getElementById('live-events-screen').style.display = 'none';
-  document.getElementById('main-app').style.display = 'flex';
+  console.log('🥊 Set currentFightRounds to:', currentFightRounds);
+      
+      // Navigate to scorecard and pre-fill names
+  launchScorecardWithFighters(fighter1, fighter2, rounds);
+      
+      console.log('🥊 Scorecard launch completed');
+}
+
+function initializeScorecardScreen() {
+  // Safety check for currentFightRounds
+  if (typeof currentFightRounds === 'undefined' || currentFightRounds === null) {
+    console.warn('⚠️ currentFightRounds not set, defaulting to 12');
+    currentFightRounds = 12;
+  }
+  
+  console.log('🥊 Initializing scorecard screen with', currentFightRounds, 'rounds');
+  
+  // Set up the scorecard interface
+  const blueScoresContainer = document.querySelector('.blue-scores');
+  const redScoresContainer = document.querySelector('.red-scores');
+  const roundNumbersContainer = document.querySelector('.round-numbers');
+  
+  if (!blueScoresContainer || !redScoresContainer || !roundNumbersContainer) {
+    console.error('❌ Scorecard containers not found!');
+    return;
+  }
+  
+  // Clear existing content
+  blueScoresContainer.innerHTML = '';
+  redScoresContainer.innerHTML = '';
+  roundNumbersContainer.innerHTML = '';
+
+  // Create cells for all rounds (dynamic based on currentFightRounds)
+  console.log('🥊 Creating scorecard with', currentFightRounds, 'rounds');
+  for (let i = 1; i <= currentFightRounds; i++) {
+    // Create round number
+    const roundNumber = document.createElement('div');
+    roundNumber.className = 'round-number';
+    roundNumber.textContent = i;
+    roundNumbersContainer.appendChild(roundNumber);
+
+    // Create blue score cell
+    const blueScoreCell = document.createElement('div');
+    blueScoreCell.className = 'score-cell blue-score';
+    blueScoreCell.dataset.round = i;
+    blueScoreCell.innerHTML = '<div class="score-display"></div>';
+    blueScoresContainer.appendChild(blueScoreCell);
+
+    // Create red score cell
+    const redScoreCell = document.createElement('div');
+    redScoreCell.className = 'score-cell red-score';
+    redScoreCell.dataset.round = i;
+    redScoreCell.innerHTML = '<div class="score-display"></div>';
+    redScoresContainer.appendChild(redScoreCell);
+  }
+  
+  // Update the round indicator to show correct total rounds
+  const roundText = document.querySelector('.round-text');
+  if (roundText) {
+    roundText.textContent = `Round 1 of ${currentFightRounds}`;
+    console.log('🥊 Updated round indicator to:', roundText.textContent);
+  }
+  
+  console.log('🥊 Scorecard screen initialized with', currentFightRounds, 'rounds');
+}
+
+function launchScorecardWithFighters(fighter1, fighter2, rounds = 12) {
+  console.log('🥊 Launching scorecard with:', fighter1, 'vs', fighter2, `(${rounds} rounds)`);
+  
+  // Update global round count
+  currentFightRounds = rounds;
+  console.log('🥊 Set currentFightRounds to:', currentFightRounds);
+  
+  // Show the main app (scorecard) - ensure proper hiding/showing
+  const loginOverlay = document.getElementById('login-overlay');
+  const homeScreen = document.getElementById('home-screen');
+  const upcomingFightsScreen = document.getElementById('upcoming-fights-screen');
+  const liveEventsScreen = document.getElementById('live-events-screen');
+  const mainApp = document.getElementById('main-app');
+  
+  // Hide all other screens
+  if (loginOverlay) loginOverlay.style.display = 'none';
+  if (homeScreen) {
+    homeScreen.style.display = 'none';
+    homeScreen.style.visibility = 'hidden';
+    homeScreen.style.opacity = '0';
+    homeScreen.style.zIndex = '-1'; // Move behind other elements
+  }
+  if (upcomingFightsScreen) upcomingFightsScreen.style.display = 'none';
+  if (liveEventsScreen) liveEventsScreen.style.display = 'none';
+  
+  // Show main app
+  if (mainApp) {
+    mainApp.style.display = 'flex';
+    mainApp.style.visibility = 'visible';
+    mainApp.style.opacity = '1';
+    mainApp.style.zIndex = '1001'; // Ensure it's above home screen
+  }
   
   // Pre-fill fighter names
   document.getElementById('blue-name').value = fighter1;
   document.getElementById('red-name').value = fighter2;
   
-  console.log('🥊 Scorecard launched with pre-filled names');
+  // Initialize the scorecard screen
+  console.log('🥊 Initializing scorecard screen...');
+  initializeScorecardScreen();
+  
+  // Initialize the main app (sets up scoring button event listeners)
+  console.log('🥊 Initializing main app...');
+  initializeMainApp();
+  
+  console.log('🥊 Scorecard launched with pre-filled names and', rounds, 'rounds');
+  console.log('🥊 Main app display style:', document.getElementById('main-app').style.display);
+  console.log('🥊 Home screen display style:', document.getElementById('home-screen').style.display);
+  
+  // Add a small delay to ensure the display changes take effect
+  setTimeout(() => {
+    console.log('🥊 After delay - Main app display style:', document.getElementById('main-app').style.display);
+    console.log('🥊 After delay - Home screen display style:', document.getElementById('home-screen').style.display);
+    
+    // Check if scorecard elements are actually visible
+    const mainApp = document.getElementById('main-app');
+    const homeScreen = document.getElementById('home-screen');
+    const mainAppComputed = window.getComputedStyle(mainApp);
+    const homeScreenComputed = window.getComputedStyle(homeScreen);
+    
+    console.log('🥊 Main app computed display:', mainAppComputed.display);
+    console.log('🥊 Main app computed visibility:', mainAppComputed.visibility);
+    console.log('🥊 Main app computed opacity:', mainAppComputed.opacity);
+    console.log('🥊 Main app computed z-index:', mainAppComputed.zIndex);
+    
+    console.log('🥊 Home screen computed display:', homeScreenComputed.display);
+    console.log('🥊 Home screen computed visibility:', homeScreenComputed.visibility);
+    console.log('🥊 Home screen computed opacity:', homeScreenComputed.opacity);
+    console.log('🥊 Home screen computed z-index:', homeScreenComputed.zIndex);
+  }, 100);
+  
+  // Check if scorecard elements exist
+  const scorecardElements = {
+    'main-app': document.getElementById('main-app'),
+    'home-screen': document.getElementById('home-screen'),
+    'blue-name': document.getElementById('blue-name'),
+    'red-name': document.getElementById('red-name')
+  };
+  
+  console.log('🥊 Scorecard elements check:', scorecardElements);
+  
+  // Force a small delay and check again
+  setTimeout(() => {
+    console.log('🥊 After 100ms - Main app display:', document.getElementById('main-app').style.display);
+    console.log('🥊 After 100ms - Home screen display:', document.getElementById('home-screen').style.display);
+  }, 100);
 }
 
 function handleFightCardClick(fightId) {
@@ -2091,17 +2325,17 @@ async function handleLogin() {
     } else {
       // Fallback to localStorage
       console.log('📱 Using localStorage fallback for login');
-      const savedUsers = JSON.parse(localStorage.getItem('crowdscore_users') || '[]');
-      const user = savedUsers.find(u => u.email === email && u.password === password);
+  const savedUsers = JSON.parse(localStorage.getItem('crowdscore_users') || '[]');
+  const user = savedUsers.find(u => u.email === email && u.password === password);
 
-      if (user) {
-        currentUser = user;
-        isLoggedIn = true;
-        localStorage.setItem('crowdscore_user', JSON.stringify(user));
-        showHomeScreen();
-        showSuccess('Welcome back, ' + user.name + '!');
-      } else {
-        showError('Invalid email or password');
+  if (user) {
+    currentUser = user;
+    isLoggedIn = true;
+    localStorage.setItem('crowdscore_user', JSON.stringify(user));
+    showHomeScreen();
+    showSuccess('Welcome back, ' + user.name + '!');
+  } else {
+    showError('Invalid email or password');
       }
     }
   } catch (error) {
@@ -2150,30 +2384,30 @@ async function handleSignup() {
     } else {
       // Fallback to localStorage
       console.log('📱 Using localStorage fallback for signup');
-      const savedUsers = JSON.parse(localStorage.getItem('crowdscore_users') || '[]');
-      if (savedUsers.find(u => u.email === email)) {
-        showError('User with this email already exists');
-        return;
-      }
+  const savedUsers = JSON.parse(localStorage.getItem('crowdscore_users') || '[]');
+  if (savedUsers.find(u => u.email === email)) {
+    showError('User with this email already exists');
+    return;
+  }
 
-      // Create new user
-      const newUser = {
-        id: Date.now(),
-        name: name,
-        email: email,
-        password: password,
-        createdAt: new Date().toISOString()
-      };
+  // Create new user
+  const newUser = {
+    id: Date.now(),
+    name: name,
+    email: email,
+    password: password,
+    createdAt: new Date().toISOString()
+  };
 
-      savedUsers.push(newUser);
-      localStorage.setItem('crowdscore_users', JSON.stringify(savedUsers));
+  savedUsers.push(newUser);
+  localStorage.setItem('crowdscore_users', JSON.stringify(savedUsers));
 
-      currentUser = newUser;
-      isLoggedIn = true;
-      localStorage.setItem('crowdscore_user', JSON.stringify(newUser));
+  currentUser = newUser;
+  isLoggedIn = true;
+  localStorage.setItem('crowdscore_user', JSON.stringify(newUser));
 
-      showHomeScreen();
-      showSuccess('Account created successfully! Welcome, ' + name + '!');
+  showHomeScreen();
+  showSuccess('Account created successfully! Welcome, ' + name + '!');
     }
   } catch (error) {
     console.error('Signup error:', error);
@@ -2328,8 +2562,9 @@ function initializeMainApp() {
     redScoresContainer.innerHTML = '';
     roundNumbersContainer.innerHTML = '';
 
-    // Create cells for all 12 rounds
-    for (let i = 1; i <= 12; i++) {
+    // Create cells for all rounds (dynamic based on currentFightRounds)
+    console.log('🥊 Creating scorecard with', currentFightRounds, 'rounds');
+    for (let i = 1; i <= currentFightRounds; i++) {
       // Create round number
       const roundNumber = document.createElement('div');
       roundNumber.className = 'round-number';
@@ -2372,12 +2607,14 @@ function initializeMainApp() {
     
     // Blue won button click
     newBlueWonButton.addEventListener('click', function() {
-      handleWinnerButtonClick('blue');
+      console.log('🔥 Blue Won button clicked!');
+      window.handleWinnerButtonClick('blue');
     });
 
     // Red won button click
     newRedWonButton.addEventListener('click', function() {
-      handleWinnerButtonClick('red');
+      console.log('🔥 Red Won button clicked!');
+      window.handleWinnerButtonClick('red');
     });
 
     // Boxer name input event
@@ -2402,10 +2639,12 @@ function initializeMainApp() {
     });
   }
 
-  // Handle winner button click
-  function handleWinnerButtonClick(winner) {
-    const currentRound = getCurrentRound();
-    if (currentRound <= 12) {
+  // Handle winner button click - moved to global scope
+  window.handleWinnerButtonClick = function(winner) {
+    console.log('✅ handleWinnerButtonClick called with winner:', winner);
+    const currentRound = window.getCurrentRound();
+    console.log('✅ Current round:', currentRound);
+    if (currentRound <= currentFightRounds) {
       const blueScoreCell = document.querySelector(`.blue-score[data-round="${currentRound}"]`);
       const redScoreCell = document.querySelector(`.red-score[data-round="${currentRound}"]`);
 
@@ -2417,12 +2656,12 @@ function initializeMainApp() {
         redScoreCell.querySelector('.score-display').textContent = '10';
       }
 
-      updateRunningTotals();
-      updateRoundIndicator();
+      window.updateRunningTotals();
+      window.updateRoundIndicator();
 
       // Check if all rounds are scored
-      if (currentRound === 12) {
-        showFinalScores();
+      if (currentRound === currentFightRounds) {
+        window.showFinalScores();
       }
     }
   }
@@ -2436,8 +2675,8 @@ function initializeMainApp() {
     });
   }
 
-  // Get current round
-  function getCurrentRound() {
+  // Get current round - moved to global scope
+  window.getCurrentRound = function() {
     const blueScores = document.querySelectorAll('.blue-score');
     for (let i = 0; i < blueScores.length; i++) {
       const scoreDisplay = blueScores[i].querySelector('.score-display');
@@ -2445,11 +2684,11 @@ function initializeMainApp() {
         return i + 1;
       }
     }
-    return 12; // Default to last round if all are filled
+    return currentFightRounds; // Default to last round if all are filled
   }
 
-  // Update running totals
-  function updateRunningTotals() {
+  // Update running totals - moved to global scope
+  window.updateRunningTotals = function() {
     let blueTotal = 0;
     let redTotal = 0;
     const blueScores = document.querySelectorAll('.blue-score');
@@ -2482,17 +2721,17 @@ function initializeMainApp() {
     });
   }
 
-  // Update round indicator
-  function updateRoundIndicator() {
-    const currentRound = getCurrentRound();
+  // Update round indicator - moved to global scope
+  window.updateRoundIndicator = function() {
+    const currentRound = window.getCurrentRound();
     const roundText = document.querySelector('.round-text');
     if (roundText) {
-      roundText.textContent = `Round ${currentRound} of 12`;
+      roundText.textContent = `Round ${currentRound} of ${currentFightRounds}`;
     }
   }
 
-  // Show final scores overlay
-  function showFinalScores() {
+  // Show final scores overlay - moved to global scope
+  window.showFinalScores = function() {
     // Get all scores and names
     const blueScores = document.querySelectorAll('.blue-score .score-display');
     const redScores = document.querySelectorAll('.red-score .score-display');
@@ -2504,7 +2743,7 @@ function initializeMainApp() {
     scorecardBody.innerHTML = ''; // Clear existing content
 
     // Add rows for each round
-    for (let i = 0; i < 12; i++) {
+    for (let i = 0; i < currentFightRounds; i++) {
       const blueScore = blueScores[i]?.textContent || '-';
       const redScore = redScores[i]?.textContent || '-';
       
@@ -2545,7 +2784,7 @@ function initializeMainApp() {
     // Add share button functionality
     const shareButton = document.getElementById('share-scorecard');
     if (shareButton) {
-      shareButton.addEventListener('click', shareScorecard);
+    shareButton.addEventListener('click', shareScorecard);
     }
   }
 
@@ -2563,7 +2802,7 @@ function initializeMainApp() {
       // Build scores array
       const fighter1Scores = [];
       const fighter2Scores = [];
-      for (let i = 0; i < 12; i++) {
+      for (let i = 0; i < currentFightRounds; i++) {
         fighter1Scores.push(parseInt(blueScores[i]?.textContent) || 0);
         fighter2Scores.push(parseInt(redScores[i]?.textContent) || 0);
       }
@@ -2726,10 +2965,10 @@ function initializeMainApp() {
     updateBoxerName('red');
     
     // Reset running totals
-    updateRunningTotals();
+    window.updateRunningTotals();
     
     // Reset round indicator
-    updateRoundIndicator();
+    window.updateRoundIndicator();
     
     // Remove any modified score indicators
     const modifiedCells = document.querySelectorAll('.score-modified');
@@ -2906,7 +3145,7 @@ function initializeMainApp() {
     }
 
     // Update running totals
-    updateRunningTotals();
+    window.updateRunningTotals();
     
     // Remove picker and editing state
     cell.classList.remove('editing');
