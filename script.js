@@ -3010,6 +3010,77 @@ function initializeMainApp() {
     });
   }
 
+  // Update inline picker selection (defined early so it can be called)
+  function updateInlineSelection(picker, index) {
+    const items = picker.querySelectorAll('.score-picker-inline-item');
+    items.forEach((item, i) => {
+      item.classList.remove('selected', 'above', 'below');
+      if (i === index) {
+        item.classList.add('selected');
+      } else if (i < index) {
+        item.classList.add('above');
+      } else {
+        item.classList.add('below');
+      }
+    });
+  }
+
+  // Save inline picker selection (defined early so it can be called)
+  function saveInlinePicker(cell) {
+    const picker = cell.querySelector('.score-picker-inline');
+    if (!picker) return;
+    
+    const selectedItem = picker.querySelector('.score-picker-inline-item.selected');
+    if (!selectedItem) return;
+    
+    const selectedScore = selectedItem.textContent;
+    
+    // Update the score display
+    const scoreDisplay = cell.querySelector('.score-display');
+    if (scoreDisplay) {
+      scoreDisplay.textContent = selectedScore;
+    }
+    
+    // Add visual indicator if score is not the standard 10/9
+    const isBlueCell = cell.classList.contains('blue-score');
+    const round = cell.dataset.round;
+    const oppositeCell = isBlueCell ? 
+      document.querySelector(`.red-score[data-round="${round}"]`) : 
+      document.querySelector(`.blue-score[data-round="${round}"]`);
+
+    if (oppositeCell) {
+      const oppositeScoreDisplay = oppositeCell.querySelector('.score-display');
+      if (oppositeScoreDisplay) {
+        const standardScore = (oppositeScoreDisplay.textContent === '10') ? '9' : '10';
+
+        if (selectedScore !== standardScore) {
+          cell.classList.add('score-modified');
+        } else {
+          cell.classList.remove('score-modified');
+        }
+      }
+    }
+
+    // Update running totals
+    if (window.updateRunningTotals) {
+      window.updateRunningTotals();
+    }
+    
+    // Remove picker and editing state
+    cell.classList.remove('editing');
+    picker.remove();
+  }
+
+  // Close all inline pickers (defined early so it can be called)
+  function closeAllInlinePickers() {
+    const editingCells = document.querySelectorAll('.score-cell.editing');
+    editingCells.forEach(cell => {
+      cell.classList.remove('editing');
+      const picker = cell.querySelector('.score-picker-inline');
+      if (picker) picker.remove();
+    });
+  }
+
   // Start inline picker for a cell
   function startInlinePicker(cell) {
     cell.classList.add('editing');
@@ -3211,64 +3282,6 @@ function initializeMainApp() {
     });
   }
 
-  // Update inline picker selection
-  function updateInlineSelection(picker, index) {
-    const items = picker.querySelectorAll('.score-picker-inline-item');
-    items.forEach((item, i) => {
-      item.classList.remove('selected', 'above', 'below');
-      if (i === index) {
-        item.classList.add('selected');
-      } else if (i < index) {
-        item.classList.add('above');
-      } else {
-        item.classList.add('below');
-      }
-    });
-  }
-
-  // Save inline picker selection
-  function saveInlinePicker(cell) {
-    const picker = cell.querySelector('.score-picker-inline');
-    const selectedItem = picker.querySelector('.score-picker-inline-item.selected');
-    const selectedScore = selectedItem.textContent;
-    
-    // Update the score display
-    const scoreDisplay = cell.querySelector('.score-display');
-    scoreDisplay.textContent = selectedScore;
-    
-    // Add visual indicator if score is not the standard 10/9
-    const isBlueCell = cell.classList.contains('blue-score');
-    const round = cell.dataset.round;
-    const oppositeCell = isBlueCell ? 
-      document.querySelector(`.red-score[data-round="${round}"]`) : 
-      document.querySelector(`.blue-score[data-round="${round}"]`);
-
-    const standardScore = (oppositeCell.querySelector('.score-display').textContent === '10') ? '9' : '10';
-
-    if (selectedScore !== standardScore) {
-      cell.classList.add('score-modified');
-    } else {
-      cell.classList.remove('score-modified');
-    }
-
-    // Update running totals
-    window.updateRunningTotals();
-    
-    // Remove picker and editing state
-    cell.classList.remove('editing');
-    picker.remove();
-  }
-
-  // Close all inline pickers
-  function closeAllInlinePickers() {
-    const editingCells = document.querySelectorAll('.score-cell.editing');
-    editingCells.forEach(cell => {
-      cell.classList.remove('editing');
-      const picker = cell.querySelector('.score-picker-inline');
-      if (picker) picker.remove();
-    });
-  }
-  
   // Mark as initialized to prevent duplicate event listeners
   isMainAppInitialized = true;
   console.log('Main app initialization complete');
