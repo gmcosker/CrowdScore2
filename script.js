@@ -2355,36 +2355,41 @@ async function handleLogin() {
     console.log('Attempting login for:', email);
 
   try {
-    // Try Supabase first
-    if (supabaseStatus && supabaseStatus.connected) {
-      console.log('🔐 Attempting Supabase login...');
-      const result = await window.supabaseIntegration.signInUser(email, password);
-      
-      if (result.success) {
-        currentUser = result.user;
-        isLoggedIn = true;
-        showHomeScreen();
-        showSuccess('Welcome back, ' + result.user.name + '!');
-        return;
-      } else {
-        showError(result.error || 'Login failed');
-        return;
+    // Try Supabase first if available
+    if (supabaseStatus && supabaseStatus.connected && window.supabaseIntegration) {
+      try {
+        console.log('🔐 Attempting Supabase login...');
+        const result = await window.supabaseIntegration.signInUser(email, password);
+        
+        if (result && result.success) {
+          currentUser = result.user;
+          isLoggedIn = true;
+          showHomeScreen();
+          showSuccess('Welcome back, ' + result.user.name + '!');
+          return;
+        } else {
+          // Supabase failed, fall through to localStorage
+          console.log('⚠️ Supabase login failed, falling back to localStorage');
+        }
+      } catch (supabaseError) {
+        // Supabase error (possibly expired account), fall back to localStorage
+        console.warn('⚠️ Supabase login error, falling back to localStorage:', supabaseError);
       }
-    } else {
-      // Fallback to localStorage
-      console.log('📱 Using localStorage fallback for login');
-  const savedUsers = JSON.parse(localStorage.getItem('crowdscore_users') || '[]');
-  const user = savedUsers.find(u => u.email === email && u.password === password);
+    }
+    
+    // Fallback to localStorage (always works even if Supabase is down/expired)
+    console.log('📱 Using localStorage for login');
+    const savedUsers = JSON.parse(localStorage.getItem('crowdscore_users') || '[]');
+    const user = savedUsers.find(u => u.email === email && u.password === password);
 
-  if (user) {
-    currentUser = user;
-    isLoggedIn = true;
-    localStorage.setItem('crowdscore_user', JSON.stringify(user));
-    showHomeScreen();
-    showSuccess('Welcome back, ' + user.name + '!');
-  } else {
-    showError('Invalid email or password');
-      }
+    if (user) {
+      currentUser = user;
+      isLoggedIn = true;
+      localStorage.setItem('crowdscore_user', JSON.stringify(user));
+      showHomeScreen();
+      showSuccess('Welcome back, ' + user.name + '!');
+    } else {
+      showError('Invalid email or password');
     }
   } catch (error) {
     console.error('Login error:', error);
@@ -2429,49 +2434,54 @@ async function handleSignup() {
   }
 
   try {
-    // Try Supabase first
-    if (supabaseStatus && supabaseStatus.connected) {
-      console.log('🔐 Attempting Supabase signup...');
-      const result = await window.supabaseIntegration.signUpUser(email, password, name);
-      
-      if (result.success) {
-        currentUser = result.user;
-        isLoggedIn = true;
-        showHomeScreen();
-        showSuccess('Account created successfully! Welcome, ' + name + '!');
-        return;
-      } else {
-        showError(result.error || 'Signup failed');
-        return;
+    // Try Supabase first if available
+    if (supabaseStatus && supabaseStatus.connected && window.supabaseIntegration) {
+      try {
+        console.log('🔐 Attempting Supabase signup...');
+        const result = await window.supabaseIntegration.signUpUser(email, password, name);
+        
+        if (result && result.success) {
+          currentUser = result.user;
+          isLoggedIn = true;
+          showHomeScreen();
+          showSuccess('Account created successfully! Welcome, ' + name + '!');
+          return;
+        } else {
+          // Supabase failed, fall through to localStorage
+          console.log('⚠️ Supabase signup failed, falling back to localStorage');
+        }
+      } catch (supabaseError) {
+        // Supabase error (possibly expired account), fall back to localStorage
+        console.warn('⚠️ Supabase signup error, falling back to localStorage:', supabaseError);
       }
-    } else {
-      // Fallback to localStorage
-      console.log('📱 Using localStorage fallback for signup');
-  const savedUsers = JSON.parse(localStorage.getItem('crowdscore_users') || '[]');
-  if (savedUsers.find(u => u.email === email)) {
-    showError('User with this email already exists');
-    return;
-  }
-
-  // Create new user
-  const newUser = {
-    id: Date.now(),
-    name: name,
-    email: email,
-    password: password,
-    createdAt: new Date().toISOString()
-  };
-
-  savedUsers.push(newUser);
-  localStorage.setItem('crowdscore_users', JSON.stringify(savedUsers));
-
-  currentUser = newUser;
-  isLoggedIn = true;
-  localStorage.setItem('crowdscore_user', JSON.stringify(newUser));
-
-  showHomeScreen();
-  showSuccess('Account created successfully! Welcome, ' + name + '!');
     }
+    
+    // Fallback to localStorage (always works even if Supabase is down/expired)
+    console.log('📱 Using localStorage for signup');
+    const savedUsers = JSON.parse(localStorage.getItem('crowdscore_users') || '[]');
+    if (savedUsers.find(u => u.email === email)) {
+      showError('User with this email already exists');
+      return;
+    }
+
+    // Create new user
+    const newUser = {
+      id: Date.now(),
+      name: name,
+      email: email,
+      password: password,
+      createdAt: new Date().toISOString()
+    };
+
+    savedUsers.push(newUser);
+    localStorage.setItem('crowdscore_users', JSON.stringify(savedUsers));
+
+    currentUser = newUser;
+    isLoggedIn = true;
+    localStorage.setItem('crowdscore_user', JSON.stringify(newUser));
+
+    showHomeScreen();
+    showSuccess('Account created successfully! Welcome, ' + name + '!');
   } catch (error) {
     console.error('Signup error:', error);
     showError('Signup failed: ' + (error.message || 'Please try again.'));
@@ -3272,27 +3282,33 @@ function initializeMainApp() {
       const deltaY = startY - currentY;
       
       // Smooth wheel-like scrolling - track cumulative movement
-      // Smaller itemHeight = more sensitive (numbers change faster)
-      const itemHeight = 50; // Pixels needed to scroll one item (lower = more sensitive)
+      // Much larger itemHeight = slower, more controlled scrolling (one number at a time)
+      // Increase this number to make scrolling slower (more pixels needed to change one number)
+      const itemHeight = 200; // Pixels needed to scroll one item (higher = slower, more control)
+      
       cumulativeDelta = deltaY;
       
       // Calculate which index based on cumulative movement
       // Dragging up (deltaY positive) should show lower numbers (10->9->8->7) = higher index (0->1->2->3)
       // Dragging down (deltaY negative) should show higher numbers (7->8->9->10) = lower index (3->2->1->0)
-      const indexOffset = Math.round(cumulativeDelta / itemHeight);
+      
+      // Calculate offset - use floor for predictable movement
+      const rawOffset = cumulativeDelta / itemHeight;
+      const indexOffset = Math.floor(rawOffset);
+      
       // When dragging UP (positive deltaY), we want HIGHER index (lower number)
       let newIndex = startIndex + indexOffset;
       
-      // Clamp to valid range
+      // Clamp to valid range (0-3 for scores 10, 9, 8, 7)
       newIndex = Math.max(0, Math.min(3, newIndex));
       
-      // Update if index changed
+      // Only update if index actually changed (prevents unnecessary updates and ensures smooth one-by-one movement)
       if (newIndex !== currentIndex) {
         currentIndex = newIndex;
         picker.dataset.currentIndex = currentIndex;
         updateInlineSelection(picker, currentIndex);
         
-        // Update the score display as you scroll
+        // Update the score display as you scroll - shows each number sequentially
         const selectedValue = parseInt(items[currentIndex].textContent);
         const scoreDisplay = cell.querySelector('.score-display');
         if (scoreDisplay) {
