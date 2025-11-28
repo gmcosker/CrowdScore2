@@ -3208,7 +3208,14 @@ function initializeMainApp() {
       });
       
       item.addEventListener('touchend', function(e) {
-        // Small delay to check if dragging happened
+        // Prevent item touchend from firing during drag - check immediately
+        if (picker.dataset.isDragging === 'true') {
+          e.preventDefault();
+          e.stopPropagation();
+          return; // Exit immediately if dragging
+        }
+        
+        // Small delay to check if dragging happened (only for non-drag taps)
         setTimeout(() => {
           if (picker.dataset.isDragging !== 'true') {
             e.preventDefault();
@@ -3218,7 +3225,7 @@ function initializeMainApp() {
             updateInlineSelection(picker, currentIndex);
             saveInlinePicker(cell);
           }
-        }, 50);
+        }, 100); // Increased delay to ensure drag detection completes
       });
       
       picker.appendChild(item);
@@ -3284,25 +3291,42 @@ function initializeMainApp() {
       // Smooth wheel-like scrolling - track cumulative movement
       // Much larger itemHeight = slower, more controlled scrolling (one number at a time)
       // Increase this number to make scrolling slower (more pixels needed to change one number)
-      const itemHeight = 200; // Pixels needed to scroll one item (higher = slower, more control)
+      const itemHeight = 250; // Pixels needed to scroll one item (higher = slower, more control) - increased for smoother scrolling
       
+      // deltaY is already cumulative from startY, but we need to ensure one-step-at-a-time movement
       cumulativeDelta = deltaY;
       
       // Calculate which index based on cumulative movement
-      // Dragging up (deltaY positive) should show lower numbers (10->9->8->7) = higher index (0->1->2->3)
-      // Dragging down (deltaY negative) should show higher numbers (7->8->9->10) = lower index (3->2->1->0)
+      // Dragging up (deltaY positive) = scroll up = see lower numbers (10->9->8->7) = higher index (0->1->2->3)
+      // Dragging down (deltaY negative) = scroll down = see higher numbers (7->8->9->10) = lower index (3->2->1->0)
       
-      // Calculate offset - use floor for predictable movement
-      const rawOffset = cumulativeDelta / itemHeight;
-      const indexOffset = Math.floor(rawOffset);
+      // Calculate how many steps we've dragged (positive = up, negative = down)
+      const stepsDragged = cumulativeDelta / itemHeight;
       
-      // When dragging UP (positive deltaY), we want HIGHER index (lower number)
-      let newIndex = startIndex + indexOffset;
+      // Calculate target index from starting position
+      // When dragging UP (positive deltaY), index increases (0->1->2->3)
+      // When dragging DOWN (negative deltaY), index decreases (3->2->1->0)
+      let targetIndex = startIndex + Math.round(stepsDragged);
       
-      // Clamp to valid range (0-3 for scores 10, 9, 8, 7)
+      // Clamp target to valid range first
+      targetIndex = Math.max(0, Math.min(3, targetIndex));
+      
+      // CRITICAL FIX: Only allow moving one step at a time from current position
+      // This prevents jumping and ensures smooth one-by-one progression
+      let newIndex = currentIndex;
+      if (targetIndex > currentIndex) {
+        // Target is ahead - move forward one step only
+        newIndex = currentIndex + 1;
+      } else if (targetIndex < currentIndex) {
+        // Target is behind - move back one step only
+        newIndex = currentIndex - 1;
+      }
+      // If targetIndex === currentIndex, stay where we are
+      
+      // Final clamp to valid range (0-3)
       newIndex = Math.max(0, Math.min(3, newIndex));
       
-      // Only update if index actually changed (prevents unnecessary updates and ensures smooth one-by-one movement)
+      // Only update if index actually changed (ensures smooth one-by-one movement)
       if (newIndex !== currentIndex) {
         currentIndex = newIndex;
         picker.dataset.currentIndex = currentIndex;
