@@ -244,9 +244,39 @@ function handleRoundSelection(event) {
 }
 
 function setupAuthListeners() {
-  // Simple, working event listeners
-  document.getElementById('login-button').addEventListener('click', handleLogin);
-  document.getElementById('signup-button').addEventListener('click', handleSignup);
+  try {
+    // Simple, working event listeners
+    const loginButton = document.getElementById('login-button');
+    const signupButton = document.getElementById('signup-button');
+    
+    if (!loginButton) {
+      console.error('Login button not found!');
+      return;
+    }
+    if (!signupButton) {
+      console.error('Signup button not found!');
+      return;
+    }
+    
+    if (typeof handleLogin !== 'function') {
+      console.error('handleLogin function not defined!');
+      return;
+    }
+    if (typeof handleSignup !== 'function') {
+      console.error('handleSignup function not defined!');
+      return;
+    }
+    
+    loginButton.addEventListener('click', function(e) {
+      e.preventDefault();
+      console.log('Login button clicked');
+      handleLogin();
+    });
+    signupButton.addEventListener('click', function(e) {
+      e.preventDefault();
+      console.log('Signup button clicked');
+      handleSignup();
+    });
   
   // Sign Up / Sign In toggle links
   document.getElementById('show-signup').addEventListener('click', function(e) {
@@ -301,6 +331,9 @@ function setupAuthListeners() {
         });
       }
     });
+  } catch (error) {
+    console.error('Error setting up auth listeners:', error);
+  }
 }
 
 function setupHomeScreenListeners() {
@@ -2300,13 +2333,26 @@ function handleFightCardClick(fightId) {
 }
 
 async function handleLogin() {
-  const email = document.getElementById('login-email').value;
-  const password = document.getElementById('login-password').value;
+  try {
+    console.log('handleLogin called');
+    const emailInput = document.getElementById('login-email');
+    const passwordInput = document.getElementById('login-password');
+    
+    if (!emailInput || !passwordInput) {
+      console.error('Login form inputs not found!');
+      showError('Login form not found. Please refresh the page.');
+      return;
+    }
+    
+    const email = emailInput.value;
+    const password = passwordInput.value;
 
-  if (!email || !password) {
-    showError('Please fill in all fields');
-    return;
-  }
+    if (!email || !password) {
+      showError('Please fill in all fields');
+      return;
+    }
+    
+    console.log('Attempting login for:', email);
 
   try {
     // Try Supabase first
@@ -2342,20 +2388,35 @@ async function handleLogin() {
     }
   } catch (error) {
     console.error('Login error:', error);
-    showError('Login failed. Please try again.');
+    showError('Login failed: ' + (error.message || 'Please try again.'));
   }
 }
 
 async function handleSignup() {
-  const name = document.getElementById('signup-name').value;
-  const email = document.getElementById('signup-email').value;
-  const password = document.getElementById('signup-password').value;
-  const confirm = document.getElementById('signup-confirm').value;
+  try {
+    console.log('handleSignup called');
+    const nameInput = document.getElementById('signup-name');
+    const emailInput = document.getElementById('signup-email');
+    const passwordInput = document.getElementById('signup-password');
+    const confirmInput = document.getElementById('signup-confirm');
+    
+    if (!nameInput || !emailInput || !passwordInput || !confirmInput) {
+      console.error('Signup form inputs not found!');
+      showError('Signup form not found. Please refresh the page.');
+      return;
+    }
+    
+    const name = nameInput.value;
+    const email = emailInput.value;
+    const password = passwordInput.value;
+    const confirm = confirmInput.value;
 
-  if (!name || !email || !password || !confirm) {
-    showError('Please fill in all fields');
-    return;
-  }
+    if (!name || !email || !password || !confirm) {
+      showError('Please fill in all fields');
+      return;
+    }
+    
+    console.log('Attempting signup for:', email);
 
   if (password !== confirm) {
     showError('Passwords do not match');
@@ -2413,7 +2474,7 @@ async function handleSignup() {
     }
   } catch (error) {
     console.error('Signup error:', error);
-    showError('Signup failed. Please try again.');
+    showError('Signup failed: ' + (error.message || 'Please try again.'));
   }
 }
 
@@ -2452,13 +2513,29 @@ function showSuccess(message) {
 // Initialize app with auth
 document.addEventListener('DOMContentLoaded', function() {
   console.log('DOM Content Loaded - Initializing app...');
-  setupAuthListeners();
-  checkLoginStatus();
-  console.log('App initialization complete');
-  
-  // Test if button exists on page load
-  const testButton = document.getElementById('score-my-own-fight');
-  console.log('Button exists on page load:', !!testButton);
+  try {
+    // Setup auth listeners first (most critical)
+    if (typeof setupAuthListeners === 'function') {
+      setupAuthListeners();
+      console.log('Auth listeners setup complete');
+    } else {
+      console.error('setupAuthListeners function not found!');
+    }
+    
+    // Check login status
+    if (typeof checkLoginStatus === 'function') {
+      checkLoginStatus();
+    }
+    
+    console.log('App initialization complete');
+    
+    // Test if button exists on page load
+    const testButton = document.getElementById('score-my-own-fight');
+    console.log('Button exists on page load:', !!testButton);
+  } catch (error) {
+    console.error('Error during app initialization:', error);
+    alert('There was an error loading the app. Please refresh the page.');
+  }
 });
 
 // Your existing app code goes here, wrapped in initializeMainApp function
