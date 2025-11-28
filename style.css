@@ -1211,6 +1211,21 @@ button {
   color: #dc2626;
 }
 
+/* Scorecard branding */
+.scorecard-branding {
+  text-align: center;
+  padding: 10px 0;
+  margin-top: 5px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.branding-text {
+  font-size: 24px;
+  color: #6b7280;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
 /* Score picker styles */
 .score-cell {
   position: relative;
@@ -1384,10 +1399,25 @@ button {
 .round-indicator {
   text-align: center;
   margin-top: 40px;
-  margin-bottom: 20px;
+  margin-bottom: 10px;
   padding: 12px;
   background: transparent;
   border: none;
+}
+
+/* Active scorecard branding */
+.active-scorecard-branding {
+  text-align: center;
+  margin-top: 20px;
+  margin-bottom: 10px;
+  padding: 8px;
+}
+
+.active-branding-text {
+  font-size: 22px;
+  color: #9ca3af;
+  font-weight: 600;
+  letter-spacing: 0.5px;
 }
 
 .round-text {

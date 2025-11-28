@@ -3018,31 +3018,9 @@ function initializeMainApp() {
     const picker = document.createElement('div');
     picker.className = 'score-picker-inline';
     
-    // Create score items (10, 9, 8, 7)
-    const scores = [10, 9, 8, 7];
-    scores.forEach((score, index) => {
-      const item = document.createElement('div');
-      item.className = 'score-picker-inline-item';
-      item.textContent = score;
-      if (index === 0) item.classList.add('selected');
-      picker.appendChild(item);
-    });
-    
-    cell.appendChild(picker);
-    
-    // Add touch/mouse handlers
-    addInlineTouchHandlers(cell, picker);
-  }
-
-  // Add touch and mouse handlers for inline picker
-  function addInlineTouchHandlers(cell, picker) {
-    let startY = 0;
-    let isDragging = false;
-    const items = picker.querySelectorAll('.score-picker-inline-item');
-    
     // Get current index based on current score
     function getCurrentIndex() {
-      const currentScore = parseInt(cell.textContent) || 10;
+      const currentScore = parseInt(cell.querySelector('.score-display')?.textContent || cell.textContent) || 10;
       if (currentScore === 10) return 0;
       if (currentScore === 9) return 1;
       if (currentScore === 8) return 2;
@@ -3052,57 +3030,184 @@ function initializeMainApp() {
     
     let currentIndex = getCurrentIndex();
     
+    // Create score items (10, 9, 8, 7)
+    const scores = [10, 9, 8, 7];
+    scores.forEach((score, index) => {
+      const item = document.createElement('div');
+      item.className = 'score-picker-inline-item';
+      item.textContent = score;
+      if (index === currentIndex) item.classList.add('selected');
+      
+      // Add tap/click handler for direct selection (only if not dragging)
+      item.addEventListener('click', function(e) {
+        if (picker.dataset.isDragging !== 'true') {
+          e.stopPropagation();
+          currentIndex = index;
+          picker.dataset.currentIndex = currentIndex;
+          updateInlineSelection(picker, currentIndex);
+          saveInlinePicker(cell);
+        }
+      });
+      
+      item.addEventListener('touchend', function(e) {
+        // Small delay to check if dragging happened
+        setTimeout(() => {
+          if (picker.dataset.isDragging !== 'true') {
+            e.preventDefault();
+            e.stopPropagation();
+            currentIndex = index;
+            picker.dataset.currentIndex = currentIndex;
+            updateInlineSelection(picker, currentIndex);
+            saveInlinePicker(cell);
+          }
+        }, 50);
+      });
+      
+      picker.appendChild(item);
+    });
+    
+    // Store currentIndex on picker for drag handlers to access
+    picker.dataset.currentIndex = currentIndex;
+    picker.dataset.isDragging = 'false'; // Initialize dragging state
+    
+    cell.appendChild(picker);
+    
+    // Update visual selection to show current index
+    updateInlineSelection(picker, currentIndex);
+    
+    // Add touch/mouse handlers
+    addInlineTouchHandlers(cell, picker);
+  }
+
+  // Add touch and mouse handlers for inline picker
+  function addInlineTouchHandlers(cell, picker) {
+    let startY = 0;
+    let isDragging = false;
+    let cumulativeDelta = 0; // Track total movement for smooth scrolling
+    let startIndex = 0; // Index when drag started
+    const items = picker.querySelectorAll('.score-picker-inline-item');
+    
+    // Get current index based on current score
+    function getCurrentIndex() {
+      const scoreDisplay = cell.querySelector('.score-display');
+      const currentScore = parseInt(scoreDisplay ? scoreDisplay.textContent : cell.textContent) || 10;
+      if (currentScore === 10) return 0;
+      if (currentScore === 9) return 1;
+      if (currentScore === 8) return 2;
+      if (currentScore === 7) return 3;
+      return 0;
+    }
+    
+    // Get initial index from picker dataset or calculate it
+    let currentIndex = parseInt(picker.dataset.currentIndex) || getCurrentIndex();
+    
     function handleStart(e) {
       e.preventDefault();
+      e.stopPropagation();
       isDragging = true;
+      cumulativeDelta = 0; // Reset cumulative movement
       startY = e.type === 'touchstart' ? e.touches[0].clientY : e.clientY;
+      // Store starting index
+      startIndex = parseInt(picker.dataset.currentIndex) || getCurrentIndex();
+      currentIndex = startIndex;
+      
+      // Prevent item click handlers from firing during drag
+      picker.dataset.isDragging = 'true';
     }
     
     function handleMove(e) {
       if (!isDragging) return;
       
       e.preventDefault();
+      e.stopPropagation();
       const currentY = e.type === 'touchmove' ? e.touches[0].clientY : e.clientY;
       const deltaY = startY - currentY;
       
-      // Simple, working logic - slower sensitivity
-      const itemHeight = 70; // Slower than original (was 40)
-      const indexChange = Math.round(deltaY / itemHeight);
-      const newIndex = Math.max(0, Math.min(3, currentIndex + indexChange));
+      // Smooth wheel-like scrolling - track cumulative movement
+      // Smaller itemHeight = more sensitive (numbers change faster)
+      const itemHeight = 50; // Pixels needed to scroll one item (lower = more sensitive)
+      cumulativeDelta = deltaY;
       
+      // Calculate which index based on cumulative movement
+      // Dragging up (deltaY positive) should show lower numbers (10->9->8->7) = higher index (0->1->2->3)
+      // Dragging down (deltaY negative) should show higher numbers (7->8->9->10) = lower index (3->2->1->0)
+      const indexOffset = Math.round(cumulativeDelta / itemHeight);
+      // When dragging UP (positive deltaY), we want HIGHER index (lower number)
+      let newIndex = startIndex + indexOffset;
+      
+      // Clamp to valid range
+      newIndex = Math.max(0, Math.min(3, newIndex));
+      
+      // Update if index changed
       if (newIndex !== currentIndex) {
         currentIndex = newIndex;
+        picker.dataset.currentIndex = currentIndex;
         updateInlineSelection(picker, currentIndex);
+        
+        // Update the score display as you scroll
         const selectedValue = parseInt(items[currentIndex].textContent);
-        cell.textContent = selectedValue;
+        const scoreDisplay = cell.querySelector('.score-display');
+        if (scoreDisplay) {
+          scoreDisplay.textContent = selectedValue;
+        } else {
+          cell.textContent = selectedValue;
+        }
         cell.dataset.score = selectedValue;
       }
     }
     
-    function handleEnd() {
-      isDragging = false;
+    function handleEnd(e) {
+      if (isDragging) {
+        isDragging = false;
+        
+        // Save the final selection
+        const finalScore = parseInt(items[currentIndex].textContent);
+        const scoreDisplay = cell.querySelector('.score-display');
+        if (scoreDisplay) {
+          scoreDisplay.textContent = finalScore;
+        }
+        
+        // Update running totals
+        window.updateRunningTotals();
+        
+        // Clear dragging flag after a short delay to allow tap handlers to check
+        setTimeout(() => {
+          picker.dataset.isDragging = 'false';
+        }, 100);
+      }
     }
     
-    // Touch events
+    // Touch events - attach to picker container
     picker.addEventListener('touchstart', handleStart, { passive: false });
     picker.addEventListener('touchmove', handleMove, { passive: false });
-    picker.addEventListener('touchend', handleEnd);
+    picker.addEventListener('touchend', handleEnd, { passive: false });
     
     // Mouse events
     picker.addEventListener('mousedown', handleStart);
     document.addEventListener('mousemove', handleMove);
     document.addEventListener('mouseup', handleEnd);
     
-    // Add wheel support
+    // Add wheel support (for desktop, less sensitive)
+    let wheelTimeout;
     picker.addEventListener('wheel', function(e) {
       e.preventDefault();
-      const delta = e.deltaY > 0 ? 1 : -1;
-      const newIndex = Math.max(0, Math.min(3, currentIndex + delta));
       
-      if (newIndex !== currentIndex) {
-        currentIndex = newIndex;
-        updateInlineSelection(picker, currentIndex);
-      }
+      // Debounce wheel events to make it less jumpy
+      clearTimeout(wheelTimeout);
+      wheelTimeout = setTimeout(() => {
+        // Require more scroll before changing (less sensitive)
+        const scrollThreshold = 50;
+        if (Math.abs(e.deltaY) < scrollThreshold) return;
+        
+        const delta = e.deltaY > 0 ? 1 : -1;
+        const newIndex = Math.max(0, Math.min(3, currentIndex + delta));
+        
+        if (newIndex !== currentIndex) {
+          currentIndex = newIndex;
+          picker.dataset.currentIndex = currentIndex; // Update stored index
+          updateInlineSelection(picker, currentIndex);
+        }
+      }, 50);
     });
   }
 
