@@ -2228,6 +2228,16 @@ function initializeScorecardScreen() {
     console.log('🥊 Updated round indicator to:', roundText.textContent);
   }
   
+  // Add class to scorecard for 12-round fights to adjust spacing
+  const scorecard = document.querySelector('.scorecard');
+  if (scorecard) {
+    if (currentFightRounds === 12) {
+      scorecard.classList.add('twelve-rounds');
+    } else {
+      scorecard.classList.remove('twelve-rounds');
+    }
+  }
+  
   console.log('🥊 Scorecard screen initialized with', currentFightRounds, 'rounds');
 }
 
@@ -2354,7 +2364,6 @@ async function handleLogin() {
     
     console.log('Attempting login for:', email);
 
-  try {
     // Try Supabase first if available
     if (supabaseStatus && supabaseStatus.connected && window.supabaseIntegration) {
       try {
@@ -2423,17 +2432,16 @@ async function handleSignup() {
     
     console.log('Attempting signup for:', email);
 
-  if (password !== confirm) {
-    showError('Passwords do not match');
-    return;
-  }
+    if (password !== confirm) {
+      showError('Passwords do not match');
+      return;
+    }
 
-  if (password.length < 6) {
-    showError('Password must be at least 6 characters');
-    return;
-  }
+    if (password.length < 6) {
+      showError('Password must be at least 6 characters');
+      return;
+    }
 
-  try {
     // Try Supabase first if available
     if (supabaseStatus && supabaseStatus.connected && window.supabaseIntegration) {
       try {
@@ -3196,14 +3204,22 @@ function initializeMainApp() {
       item.textContent = score;
       if (index === currentIndex) item.classList.add('selected');
       
-      // Add tap/click handler for direct selection (only if not dragging)
+      // Add tap/click handler for direct selection and "lock in" feature
       item.addEventListener('click', function(e) {
         if (picker.dataset.isDragging !== 'true') {
           e.stopPropagation();
-          currentIndex = index;
-          picker.dataset.currentIndex = currentIndex;
-          updateInlineSelection(picker, currentIndex);
-          saveInlinePicker(cell);
+          const currentSelectedIndex = parseInt(picker.dataset.currentIndex) || getCurrentIndex();
+          
+          if (index === currentSelectedIndex) {
+            // Tapping the currently selected number = "lock it in" (save it)
+            saveInlinePicker(cell);
+          } else {
+            // Tapping a different number = select it and save immediately
+            currentIndex = index;
+            picker.dataset.currentIndex = currentIndex;
+            updateInlineSelection(picker, currentIndex);
+            saveInlinePicker(cell);
+          }
         }
       });
       
@@ -3220,10 +3236,18 @@ function initializeMainApp() {
           if (picker.dataset.isDragging !== 'true') {
             e.preventDefault();
             e.stopPropagation();
-            currentIndex = index;
-            picker.dataset.currentIndex = currentIndex;
-            updateInlineSelection(picker, currentIndex);
-            saveInlinePicker(cell);
+            const currentSelectedIndex = parseInt(picker.dataset.currentIndex) || getCurrentIndex();
+            
+            if (index === currentSelectedIndex) {
+              // Tapping the currently selected number = "lock it in" (save it)
+              saveInlinePicker(cell);
+            } else {
+              // Tapping a different number = select it and save immediately
+              currentIndex = index;
+              picker.dataset.currentIndex = currentIndex;
+              updateInlineSelection(picker, currentIndex);
+              saveInlinePicker(cell);
+            }
           }
         }, 100); // Increased delay to ensure drag detection completes
       });
@@ -3291,7 +3315,7 @@ function initializeMainApp() {
       // Smooth wheel-like scrolling - track cumulative movement
       // Much larger itemHeight = slower, more controlled scrolling (one number at a time)
       // Increase this number to make scrolling slower (more pixels needed to change one number)
-      const itemHeight = 250; // Pixels needed to scroll one item (higher = slower, more control) - increased for smoother scrolling
+      const itemHeight = 100; // Pixels needed to scroll one item (higher = slower, more control)
       
       // deltaY is already cumulative from startY, but we need to ensure one-step-at-a-time movement
       cumulativeDelta = deltaY;
@@ -3348,16 +3372,14 @@ function initializeMainApp() {
       if (isDragging) {
         isDragging = false;
         
-        // Save the final selection
+        // Update the display to show the final selection (but don't save yet - user must tap to lock it in)
         const finalScore = parseInt(items[currentIndex].textContent);
         const scoreDisplay = cell.querySelector('.score-display');
         if (scoreDisplay) {
           scoreDisplay.textContent = finalScore;
         }
         
-        // Update running totals
-        window.updateRunningTotals();
-        
+        // Don't auto-save - user must tap the number to "lock it in"
         // Clear dragging flag after a short delay to allow tap handlers to check
         setTimeout(() => {
           picker.dataset.isDragging = 'false';

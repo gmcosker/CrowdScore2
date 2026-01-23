@@ -868,11 +868,25 @@ body {
   backdrop-filter: blur(10px);
 }
 
+/* For 12-round fights, reduce padding to give more vertical space */
+.scorecard.twelve-rounds {
+  padding: 12px 20px; /* Further reduce top/bottom padding */
+}
+
 .boxer-info-container {
   display: flex;
   justify-content: space-between;
   margin-bottom: 8px;
   gap: 8px;
+}
+
+/* For 12-round fights, reduce top section spacing to give more room for rounds */
+.scorecard.twelve-rounds .boxer-info-container {
+  margin-bottom: 4px;
+}
+
+.scorecard.twelve-rounds .boxer-info {
+  padding: 6px; /* Reduce padding on boxer info boxes */
 }
 
 .boxer-info {
@@ -972,6 +986,15 @@ button {
   flex-direction: column;
 }
 
+/* For 12-round fights, expand the container to show all rounds without scrolling */
+.scorecard.twelve-rounds .rounds-container {
+  overflow: visible; /* Show all content without scrolling */
+  padding: 4px; /* Reduce padding to give more vertical space */
+  flex-grow: 2; /* Give it much more space in the flex layout */
+  min-height: 0; /* Allow flex container to shrink if needed */
+  max-height: none; /* Remove any max-height constraints */
+}
+
 .score-grid {
   display: flex;
   justify-content: space-between;
@@ -1009,6 +1032,14 @@ button {
   flex-direction: column;
   width: 100%;
   flex-grow: 1;
+}
+
+/* For 12-round fights, ensure all rounds are visible */
+.scorecard.twelve-rounds .blue-scores,
+.scorecard.twelve-rounds .red-scores,
+.scorecard.twelve-rounds .round-numbers {
+  min-height: fit-content; /* Allow content to determine height */
+  flex-shrink: 0; /* Don't shrink the content */
 }
 
 .score-cell, .round-number {
@@ -1411,6 +1442,13 @@ button {
   margin-top: 20px;
   margin-bottom: 10px;
   padding: 8px;
+}
+
+/* Adjust spacing for 12-round fights - push branding down to show full 12th round */
+.scorecard.twelve-rounds .active-scorecard-branding {
+  margin-top: 20px;
+  margin-bottom: 8px;
+  padding: 4px; /* Reduce padding */
 }
 
 .active-branding-text {
