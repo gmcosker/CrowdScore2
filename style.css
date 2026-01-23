@@ -167,6 +167,36 @@
   font-size: 0.8rem;
 }
 
+/* Account Button Container */
+.account-button-container {
+  width: 100%;
+  margin-top: 20px;
+  padding: 0 20px;
+  display: flex;
+  justify-content: center;
+}
+
+.account-button {
+  width: 100%;
+  max-width: 400px;
+  padding: 12px 24px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  color: white;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+}
+
+.account-button:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+}
+
 /* App Header Styles - Compact for Mobile */
 .app-header {
   position: fixed;
@@ -866,6 +896,7 @@ body {
   padding: 20px;
   background: var(--scorecardBackground);
   backdrop-filter: blur(10px);
+  position: relative; /* Allow absolute positioning of overlay button */
 }
 
 /* For 12-round fights, reduce padding to give more vertical space */
@@ -1424,6 +1455,18 @@ button {
   .round-text {
     font-size: 14px;
   }
+  
+  /* Mobile adjustments for Score Another Fight button overlay */
+  .score-another-fight-container {
+    bottom: 15px;
+    padding: 0 15px;
+  }
+  
+  .score-another-fight-button {
+    width: 90%;
+    font-size: 14px;
+    padding: 10px 20px;
+  }
 }
 
 /* Round indicator */
@@ -1449,6 +1492,43 @@ button {
   margin-top: 20px;
   margin-bottom: 8px;
   padding: 4px; /* Reduce padding */
+}
+
+/* Score Another Fight Button Container - Overlay */
+.score-another-fight-container {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  width: 100%;
+  padding: 0 20px;
+  z-index: 100;
+  pointer-events: none; /* Allow clicks to pass through container */
+}
+
+.score-another-fight-button {
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 16px;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 4px 15px rgba(5, 150, 105, 0.4);
+  width: 80%;
+  max-width: 300px;
+  pointer-events: auto; /* Enable clicks on button */
+}
+
+.score-another-fight-button:hover {
+  background: linear-gradient(135deg, #047857 0%, #065f46 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(5, 150, 105, 0.6);
 }
 
 .active-branding-text {

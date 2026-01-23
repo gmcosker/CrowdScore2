@@ -50,14 +50,14 @@ function checkLoginStatus() {
   // Initialize Supabase first
   initializeSupabase();
   
-  // Check if user is already logged in
+  // Always show home screen - no login required
+  showHomeScreen();
+  
+  // Check if user is already logged in (for menu/profile features)
   const savedUser = localStorage.getItem('crowdscore_user');
   if (savedUser) {
     currentUser = JSON.parse(savedUser);
     isLoggedIn = true;
-    showHomeScreen();
-  } else {
-    showLoginScreen();
   }
 }
 
@@ -373,6 +373,16 @@ function setupHomeScreenListeners() {
     console.log('Live events button listener attached');
   } else {
     console.error('Live events button not found!');
+  }
+  
+  // Account button - opens login/signup overlay
+  const accountButton = document.getElementById('account-button');
+  if (accountButton) {
+    accountButton.removeEventListener('click', showLoginScreen);
+    accountButton.addEventListener('click', showLoginScreen);
+    console.log('Account button listener attached');
+  } else {
+    console.error('Account button not found!');
   }
 }
 
@@ -1264,9 +1274,9 @@ function extractFightsFromHTML(doc) {
     }
     
     // CONTINUOUS SCANNING APPROACH: Process text sequentially, updating date context as we go
-    // FIXED: Ultra-flexible regex to catch ALL possible date formats
-    // Handles: "Oct. 12: Hollywood, Florida (DAZN)", "Oct. 17: London (DAZN)", "Oct. 20: Las Vegas, NV", etc.
-    const dateVenuePattern = /(Oct\.|Nov\.|Dec\.)\s+(\d+):\s+([^,()]+?)(?:\s*,\s*([A-Za-z\s,]+?))?\s*(?:\(([^)]+)\))?/g;
+    // FIXED: Ultra-flexible regex to catch ALL possible date formats for ALL 12 months
+    // Handles: "Jan. 12: Hollywood, Florida (DAZN)", "Feb. 17: London (DAZN)", "March 20: Las Vegas, NV", etc.
+    const dateVenuePattern = /(Jan\.|Feb\.|Mar\.|March|Apr\.|April|May|Jun\.|June|Jul\.|July|Aug\.|Sep\.|Sept\.|October|Oct\.|Nov\.|Dec\.)\s+(\d+):\s+([^,()]+?)(?:\s*,\s*([A-Za-z\s,]+?))?\s*(?:\(([^)]+)\))?/g;
     const fightPattern = /([A-Za-z\s"']+)\s+vs\.?\s+([A-Za-z\s"']+),?\s*(\d+)\s+rounds?,\s*([^,\n]+)/g;
     
     let currentDate = '';
@@ -1283,8 +1293,8 @@ function extractFightsFromHTML(doc) {
     const allMatches = [];
     
     // Find all date/venue blocks - CREATE FRESH REGEX TO AVOID STATE ISSUES
-    // FIXED: Ultra-flexible regex to catch ALL possible date formats
-    const dateRegex = new RegExp(/(Oct\.|Nov\.|Dec\.)\s+(\d+):\s+([^,()]+?)(?:\s*,\s*([A-Za-z\s,]+?))?\s*(?:\(([^)]+)\))?/g);
+    // FIXED: Ultra-flexible regex to catch ALL possible date formats for ALL 12 months
+    const dateRegex = new RegExp(/(Jan\.|Feb\.|Mar\.|March|Apr\.|April|May|Jun\.|June|Jul\.|July|Aug\.|Sep\.|Sept\.|October|Oct\.|Nov\.|Dec\.)\s+(\d+):\s+([^,()]+?)(?:\s*,\s*([A-Za-z\s,]+?))?\s*(?:\(([^)]+)\))?/g);
     while ((match = dateRegex.exec(remainingText)) !== null) {
       allMatches.push({
         type: 'date',
@@ -1294,7 +1304,8 @@ function extractFightsFromHTML(doc) {
     }
     
     // Find all fights - FIXED REGEX TO PREVENT OVERLAP AND SKIPPING
-    const fightRegex = new RegExp(/([A-Za-z\s"']+?)\s+vs\.?\s+([A-Za-z\s"']+?),?\s*(\d+)\s+rounds?,\s*([^,\n]+?)(?=\s*[A-Za-z]|\s*Oct\.|\s*Nov\.|\s*Dec\.|$)/g);
+    // Updated to match all months, not just Oct/Nov/Dec
+    const fightRegex = new RegExp(/([A-Za-z\s"']+?)\s+vs\.?\s+([A-Za-z\s"']+?),?\s*(\d+)\s+rounds?,\s*([^,\n]+?)(?=\s*[A-Za-z]|\s*(?:Jan\.|Feb\.|Mar\.|March|Apr\.|April|May|Jun\.|June|Jul\.|July|Aug\.|Sep\.|Sept\.|October|Oct\.|Nov\.|Dec\.)|$)/g);
     while ((match = fightRegex.exec(remainingText)) !== null) {
       allMatches.push({
         type: 'fight',
@@ -1319,10 +1330,27 @@ function extractFightsFromHTML(doc) {
         currentCity = match[4] ? match[4].trim() : '';
         currentNetwork = match[5] ? match[5].trim() : '';
         
-        // Create proper date string for 2025
-        const year = 2025;
-        const monthNum = month === 'Oct.' ? '10' : month === 'Nov.' ? '11' : '12';
-        currentDate = `${year}-${monthNum.padStart(2, '0')}-${day.padStart(2, '0')}`;
+        // Create proper date string using current year (dynamic)
+        const currentYear = new Date().getFullYear();
+        
+        // Map all month abbreviations and full names to month numbers
+        const monthMap = {
+          'Jan.': '01', 'January': '01',
+          'Feb.': '02', 'February': '02',
+          'Mar.': '03', 'March': '03',
+          'Apr.': '04', 'April': '04',
+          'May': '05',
+          'Jun.': '06', 'June': '06',
+          'Jul.': '07', 'July': '07',
+          'Aug.': '08', 'August': '08',
+          'Sep.': '09', 'Sept.': '09', 'September': '09',
+          'Oct.': '10', 'October': '10',
+          'Nov.': '11', 'November': '11',
+          'Dec.': '12', 'December': '12'
+        };
+        
+        const monthNum = monthMap[month] || '01'; // Default to January if not found
+        currentDate = `${currentYear}-${monthNum}-${day.padStart(2, '0')}`;
         
         console.log(`🔍 Found NEW date/venue info: ${month} ${day} - ${currentVenue}, ${currentCity} (${currentNetwork})`);
         console.log(`🔍 Updated date string: ${currentDate}`);
@@ -1798,7 +1826,8 @@ function displayFights(fights, pageType = 'upcoming') {
     const message = pageType === 'live' 
       ? '<div class="loading-message">No featured events today</div>' 
       : '<div class="loading-message">No upcoming fights found</div>';
-    fightsList.innerHTML = message;
+    const scrapingError = '<div class="scraping-error-message" style="text-align: center; margin-top: 20px; padding: 15px; color: #9ca3af; font-size: 14px; font-style: italic;">app may be having a hard time scraping from ESPN site - check listings to verify</div>';
+    fightsList.innerHTML = message + scrapingError;
     return;
   }
 
@@ -1863,7 +1892,7 @@ function displayFights(fights, pageType = 'upcoming') {
       id: fight.id || `fight_${index}`,
       fighter1: fighter1Name,
       fighter2: fighter2Name,
-      date: formatDate(fight.event?.date || fight.date || `${fight.month} ${fight.day}, 2025`),
+      date: formatDate(fight.event?.date || fight.date || `${fight.month} ${fight.day}, ${new Date().getFullYear()}`),
       venue: fight.event?.venue || fight.venue || 'TBD',
       weight: fight.weightClass || fight.weight || 'Boxing',
       network: fight.broadcast?.network || fight.network || 'TBD',
@@ -2734,6 +2763,14 @@ function initializeMainApp() {
     newFightButton.addEventListener('click', function() {
       startNewFight();
     });
+    
+    // "Score Another Fight" button click (shown after fight completion)
+    const scoreAnotherButton = document.getElementById('score-another-fight-button');
+    if (scoreAnotherButton) {
+      scoreAnotherButton.addEventListener('click', function() {
+        startNewFight();
+      });
+    }
   }
 
   // Handle winner button click - moved to global scope
@@ -2758,7 +2795,14 @@ function initializeMainApp() {
 
       // Check if all rounds are scored
       if (currentRound === currentFightRounds) {
-        window.showFinalScores();
+        // DORMANT: Final overlay screen disabled - keeping code for future development
+        // window.showFinalScores();
+        
+        // Show final score summary on same page instead
+        window.showFinalScoreSummary();
+        
+        // Still save the scorecard to database
+        saveScorecardToDatabase();
       }
     }
   }
@@ -2872,16 +2916,26 @@ function initializeMainApp() {
     document.querySelector('.blue-corner-label').textContent = blueName;
     document.querySelector('.red-corner-label').textContent = redName;
 
-    // Show the overlay
-    finalCenterOverlay.style.display = 'flex';
+    // DORMANT: Overlay display disabled - staying on same page instead
+    // finalCenterOverlay.style.display = 'flex';
 
     // Save scorecard to Supabase
-    saveScorecardToDatabase();
+    // saveScorecardToDatabase(); // Moved to caller to avoid duplicate saves
 
     // Add share button functionality
     const shareButton = document.getElementById('share-scorecard');
     if (shareButton) {
     shareButton.addEventListener('click', shareScorecard);
+    }
+  }
+
+  // Show final score summary on same page (new function)
+  // Simplified - only shows the "Score Another Fight" button
+  window.showFinalScoreSummary = function() {
+    // Show "Score Another Fight" button
+    const scoreAnotherContainer = document.getElementById('score-another-fight-container');
+    if (scoreAnotherContainer) {
+      scoreAnotherContainer.style.display = 'block';
     }
   }
 
@@ -3042,6 +3096,12 @@ function initializeMainApp() {
   function clearScorecard() {
     // Hide the final overlay
     finalCenterOverlay.style.display = 'none';
+    
+    // Hide "Score Another Fight" button
+    const scoreAnotherContainer = document.getElementById('score-another-fight-container');
+    if (scoreAnotherContainer) {
+      scoreAnotherContainer.style.display = 'none';
+    }
     
     // Clear all scores
     const blueScores = document.querySelectorAll('.blue-score .score-display');
